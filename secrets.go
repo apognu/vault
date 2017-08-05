@@ -57,7 +57,7 @@ func getSecret(path string) (*Secret, map[string]string) {
 	// Get the passphrase from the console if the store is sealed
 	var passphrase []byte
 	if !isUnsealed() {
-		seal, err := getPassphrase("Enter passphrase")
+		seal, err := getPassphrase("Enter passphrase", false)
 		if err != nil {
 			logrus.Fatalf("could not read passphrase: %s", err)
 		}
@@ -96,7 +96,7 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, edit boo
 	for k, v := range attrs {
 		// If eyes-only attirbute, prompt for it on the command-line
 		if v == "" {
-			pass, err := getPassphrase(fmt.Sprintf("Value for '%s'", k))
+			pass, err := getPassphrase(fmt.Sprintf("Value for '%s'", k), false)
 			if err != nil {
 				logrus.Fatalf("could not read attribute: %s", err)
 			}
@@ -126,7 +126,7 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, edit boo
 
 	var passphrase []byte
 	if !isUnsealed() {
-		seal, err := getPassphrase("Enter passphrase")
+		seal, err := getPassphrase("Enter passphrase", true)
 		if err != nil {
 			logrus.Fatalf("could not read passphrase: %s", err)
 		}

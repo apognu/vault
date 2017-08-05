@@ -16,10 +16,23 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func getPassphrase(prompt string) ([]byte, error) {
+func getPassphrase(prompt string, confirm bool) ([]byte, error) {
 	fmt.Printf("%s: ", prompt)
 	passphrase, err := terminal.ReadPassword(0)
 	fmt.Println("")
+
+	if confirm {
+		fmt.Print("Confirm: ")
+		confirmation, err := terminal.ReadPassword(0)
+		fmt.Println("")
+		if err != nil {
+			logrus.Fatal("could not read confirmation passphrases")
+		}
+
+		if string(passphrase) != string(confirmation) {
+			logrus.Fatal("passphrases do not match")
+		}
+	}
 
 	return passphrase, err
 }

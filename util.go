@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
@@ -33,9 +34,11 @@ func FormatAttributes(path string, attrs map[string]string, eyesOnly []string, p
 
 	lineFmt := fmt.Sprintf(" %%%ds %%s %%s\n", maxLength)
 
-	pathTokens := strings.Split(path, "/")
-	secretName := pathTokens[len(pathTokens)-1]
-	pathTokens = pathTokens[:len(pathTokens)-1]
+	dir, secretName := filepath.Split(path)
+	pathTokens := strings.Split(filepath.Clean(dir), "/")
+	// pathTokens := strings.Split(path, "/")
+	// secretName := pathTokens[len(pathTokens)-1]
+	// pathTokens = pathTokens[:len(pathTokens)-1]
 
 	fmt.Printf("Store » %s » %s\n", blue(strings.Join(pathTokens, " » ")), secretName)
 
@@ -62,9 +65,11 @@ func FormatDirectory(path string, level int) {
 
 	// Display styled representation of current directory on first line
 	if level == 0 {
-		pathTokens := strings.Split(path, "/")
-		if len(pathTokens) == 2 {
+		var pathTokens []string
+		if path == "/" {
 			pathTokens = []string{"/"}
+		} else {
+			pathTokens = strings.Split(filepath.Clean(path), "/")
 		}
 
 		fmt.Printf("Store » %s\n", blue(strings.Join(pathTokens, " » ")))

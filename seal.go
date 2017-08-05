@@ -18,7 +18,7 @@ func unseal() {
 		logrus.Fatal("store is already unsealed")
 	}
 
-	passphrase, err := getPassphrase("Enter passphrase")
+	passphrase, err := getPassphrase("Enter passphrase", true)
 	if err != nil {
 		logrus.Fatalf("could not unseal store: %s", err)
 	}
