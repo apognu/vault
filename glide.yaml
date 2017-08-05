@@ -1,0 +1,16 @@
+package: github.com/apognu/vault
+import:
+- package: golang.org/x/crypto
+  subpackages:
+  - pbkdf2
+  - ed25519
+  - ssh/terminal
+- package: github.com/Sirupsen/logrus
+  version: ^1.0.2
+- package: gopkg.in/alecthomas/kingpin.v2
+  version: ^2.2.5
+- package: github.com/fatih/color
+  version: ^1.5.0
+- package: github.com/atotto/clipboard
+- package: github.com/google/uuid
+  version: ^0.2.0
