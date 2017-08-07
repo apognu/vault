@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -15,6 +16,13 @@ const (
 )
 
 func gitClone(url string) {
+	files, err := ioutil.ReadDir(vaultDir)
+	if err != nil {
+		logrus.Fatalf("%s does not exist", vaultDir)
+	}
+	if len(files) > 0 {
+		logrus.Fatalf("%s directory already exists and contains files", vaultDir)
+	}
 	runGitCommand(false, "clone", url, vaultDir)
 }
 

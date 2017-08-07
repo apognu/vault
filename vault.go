@@ -10,6 +10,10 @@ import (
 var vaultDir = fmt.Sprintf("%s/.vault", os.Getenv("HOME"))
 
 func main() {
+	if os.Getenv("VAULT_PATH") != "" {
+		vaultDir = os.Getenv("VAULT_PATH")
+	}
+
 	createVault()
 
 	app := kingpin.New("vault", "Simple encrypted data store")

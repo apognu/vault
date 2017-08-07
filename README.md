@@ -2,7 +2,7 @@
 
 Personal project of a git-based encrypted password store. Each "password" is actually a JSON-encoded map of strings, encrypted through AES-GCM with a key derived from a passphrase, allowing to store more than just one password for each entry.
 
-The whole store directory is located under $HOME/.vault and can be pushed to a remote git repository though the ```vault``` command.
+The whole store directory is located under $HOME/.vault (overridable through the VAULT_PATH environment variable) and can be pushed to a remote git repository though the ```vault``` command.
 
 **This is a draft in progress, I would be very cautious with using it to store your most precious passwords.**
 
