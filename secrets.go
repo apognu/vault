@@ -180,6 +180,9 @@ func deleteSecret(path string) {
 		logrus.Fatalf("could not remove secret: %s", err)
 	}
 
+	logrus.Infof("secret '%s' deleted successfully", path)
+	gitCommit(path, GIT_DELETE)
+
 	// Remove any empty parent directory
 	for {
 		dir, _ := filepath.Split(filepath.Clean(path))
@@ -195,6 +198,4 @@ func deleteSecret(path string) {
 		path = dir
 	}
 
-	logrus.Infof("secret '%s' deleted successfully", path)
-	gitCommit(path, GIT_DELETE)
 }
