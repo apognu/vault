@@ -35,7 +35,12 @@ func FormatAttributes(path string, attrs map[string]string, eyesOnly []string, p
 	lineFmt := fmt.Sprintf(" %%%ds %%s %%s\n", maxLength)
 
 	dir, secretName := filepath.Split(path)
-	pathTokens := strings.Split(filepath.Clean(dir), "/")
+	var pathTokens []string
+	if dir == "" {
+		pathTokens = []string{"/"}
+	} else {
+		pathTokens = strings.Split(filepath.Clean(dir), "/")
+	}
 
 	fmt.Printf("Store » %s » %s\n", blue(strings.Join(pathTokens, " » ")), secretName)
 

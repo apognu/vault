@@ -83,7 +83,7 @@ func showSecret(path string, print bool, clip bool, clipAttr string) {
 	FormatAttributes(path, attrs, cipherData.EyesOnly, print)
 }
 
-func addSecret(path string, attrs map[string]string, eyesOnly []string, edit bool) {
+func addSecret(path string, attrs map[string]string, eyesOnly []string, edit bool, editedAtts []string) {
 	// Check if the secret already exists in ADD mode
 	filePath := fmt.Sprintf("%s/%s", vaultDir, path)
 	if !edit {
@@ -108,7 +108,9 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, edit boo
 			}
 		} else {
 			// If the attribute is NOT eyes-only, potentially remove it from the list
-			eyesOnly = RemoveFromSlice(eyesOnly, k)
+			if StringArrayContains(editedAtts, k) {
+				eyesOnly = RemoveFromSlice(eyesOnly, k)
+			}
 		}
 	}
 
@@ -160,10 +162,12 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, edit boo
 
 func editSecret(path string, newAttrs map[string]string, deletedAttrs []string) {
 	cipherData, attrs := getSecret(path)
+	editedAttrs := make([]string, 0)
 
 	// Replace old attributes with new ones
 	for k, _ := range newAttrs {
 		attrs[k] = newAttrs[k]
+		editedAttrs = append(editedAttrs, k)
 	}
 
 	// Remove deleted attributes from the map
@@ -171,7 +175,7 @@ func editSecret(path string, newAttrs map[string]string, deletedAttrs []string) 
 		delete(attrs, k)
 	}
 
-	addSecret(path, attrs, cipherData.EyesOnly, true)
+	addSecret(path, attrs, cipherData.EyesOnly, true, editedAttrs)
 }
 
 func deleteSecret(path string) {
