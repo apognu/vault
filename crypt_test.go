@@ -35,3 +35,18 @@ func TestEncryption(t *testing.T) {
 	assert.Equal(t, "apognu", decryptedAttrs["username"], "username should be 'apognu'")
 	assert.Equal(t, "strongpassword", decryptedAttrs["password"], "password should be 'strongpassword'")
 }
+
+func TestFailingEncryption(t *testing.T) {
+	attrs := map[string]string{
+		"username": "apognu",
+		"password": "strongpassword",
+	}
+
+	encryptedSecret, err := encryptData(attrs, []byte("Sup3rS3cre7"), []string{})
+	assert.Nil(t, err)
+	assert.NotNil(t, encryptedSecret)
+
+	decryptedAttrs, err := decryptData(encryptedSecret, []byte("WrongPassphrase"))
+	assert.NotNil(t, err)
+	assert.Nil(t, decryptedAttrs)
+}
