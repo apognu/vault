@@ -63,7 +63,7 @@ By default, your passphrase will always be asked interactively whenever you crea
 
 Unsealing one's vault will remember (see below) your passphrase for as long as the vault is left unsealed (or until next reboot), so that any command requiring a passphrase can use it to encrypt and decrypt data.
 
-This works by very uglily **storing the user's hashed passphrase** in a ```0600``` file under /tmp. I know, this sucks, and will probably be enhanced in future versions. But we're stuck with it for now.
+This works by very uglily **storing the user's hashed passphrase** in a ```0400``` file under /tmp. I know, this sucks, and will probably be enhanced in future versions. But we're stuck with it for now.
 
 To unseal your vault:
 
