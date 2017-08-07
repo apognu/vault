@@ -39,7 +39,7 @@ Store » dir » subdir » website.com
 
 The ```-p``` option can be used to display the redacted attributes.
 
-The ```-c``` option can be used to copy the ```password``` attribute to the clipboard. If you would like to copy another attribute to your clipboard, use the ```-a``` option.
+The ```-c``` option can be used to copy one attribute to the clipboard. By default, if the entry contains ony one eyes-only attribute, it will be used. If there are more than one eyes-only attribute, the attribute named ```password``` will be copied. If you would like to copy another attribute to your clipboard, use the ```-a``` option.
 
 ## Edit a secret
 

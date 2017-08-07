@@ -23,7 +23,7 @@ func main() {
 	appShowPath := appShow.Arg("path", "secret path").Required().String()
 	appShowPrint := appShow.Flag("print", "print 'password' attribute on console").Short('p').Bool()
 	appShowClipboard := appShow.Flag("clip", "copy 'password' attribute into clipboard").Short('c').Bool()
-	appShowClipAttr := appShow.Flag("clip-attributes", "attribute to copy to clipboard").Short('a').Default("password").String()
+	appShowClipAttr := appShow.Flag("clip-attributes", "attribute to copy to clipboard").Short('a').Default("").String()
 
 	appAdd := app.Command("add", "add a secret")
 	appAddPath := appAdd.Arg("path", "secret path").Required().String()

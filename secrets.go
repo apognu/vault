@@ -76,8 +76,22 @@ func getSecret(path string) (*Secret, map[string]string) {
 func showSecret(path string, print bool, clip bool, clipAttr string) {
 	cipherData, attrs := getSecret(path)
 
-	if clip && attrs[clipAttr] != "" {
-		clipboard.WriteAll(attrs[clipAttr])
+	if clipAttr == "" {
+		if len(cipherData.EyesOnly) == 1 {
+			clipAttr = cipherData.EyesOnly[0]
+		} else {
+			clipAttr = "password"
+		}
+	}
+
+	if clip {
+		if attrs[clipAttr] != "" {
+			clipboard.WriteAll(attrs[clipAttr])
+			logrus.Infof("attribute '%s' of '%s' was copied to your clipboard", clipAttr, path)
+			return
+		} else {
+			logrus.Fatalf("could not read attribute '%s'", clipAttr)
+		}
 	}
 
 	FormatAttributes(path, attrs, cipherData.EyesOnly, print)
