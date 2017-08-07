@@ -29,6 +29,16 @@ Enter passphrase:
 INFO[0010] secret 'website.com' created successfully
 ```
 
+### Generated passwords
+
+One can generate random passwords (now with [A-Za-z0-9]) with the syntax ```attr=-```. By default, a random 16-character password will be generated for that attribute. Generated attributes will automatically be set as eyes-only.
+
+```
+$ vault add websites.com username=apognu password=-
+```
+
+One can generate passwords with a different size with the ```-l``` option.
+
 ## Print a secret
 
 ```

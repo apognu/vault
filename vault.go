@@ -32,11 +32,13 @@ func main() {
 	appAdd := app.Command("add", "add a secret")
 	appAddPath := appAdd.Arg("path", "secret path").Required().String()
 	appAddAttrs := appAdd.Arg("attributes", "secret attributes").Required().StringMap()
+	appAddGeneratorLength := appAdd.Flag("length", "length of generated passwords").Short('l').Default("16").Int()
 
 	appEdit := app.Command("edit", "edit an existing secret")
 	appEditPath := appEdit.Arg("path", "path to the secret to edit").Required().String()
 	appEditDeletedAttrs := appEdit.Flag("delete", "attributes to delete from the secret").Short('d').Strings()
 	appEditAttrs := appEdit.Arg("attributes", "secret attributes").StringMap()
+	appEditGeneratorLength := appEdit.Flag("length", "length of generated passwords").Short('l').Default("16").Int()
 
 	appDelete := app.Command("delete", "delete a secret")
 	appDeletePath := appDelete.Arg("path", "secret path").Required().String()
@@ -59,9 +61,9 @@ func main() {
 	case appShow.FullCommand():
 		showSecret(*appShowPath, *appShowPrint, *appShowClipboard, *appShowClipAttr)
 	case appAdd.FullCommand():
-		addSecret(*appAddPath, *appAddAttrs, []string{}, false, []string{})
+		addSecret(*appAddPath, *appAddAttrs, []string{}, *appAddGeneratorLength, false, []string{})
 	case appEdit.FullCommand():
-		editSecret(*appEditPath, *appEditAttrs, *appEditDeletedAttrs)
+		editSecret(*appEditPath, *appEditAttrs, *appEditDeletedAttrs, *appEditGeneratorLength)
 	case appDelete.FullCommand():
 		deleteSecret(*appDeletePath)
 	case appGitClone.FullCommand():
