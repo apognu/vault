@@ -17,6 +17,8 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+var passphraseCache []byte
+
 func createVault() error {
 	if _, err := os.Stat(util.GetVaultPath()); !os.IsNotExist(err) {
 		return nil
@@ -50,8 +52,8 @@ func InitVault() {
 	nonce, aesgcm := GetCipher(passKey, nil)
 	ciphertext := aesgcm.Seal(nil, nonce, key, nil)
 
-	meta := &VaultMeta{
-		MasterKeys: []MasterKey{
+	meta := &util.VaultMeta{
+		MasterKeys: []util.MasterKey{
 			{
 				Salt:  fmt.Sprintf("%x", passSalt),   // Salt used to derive the key from the passphrase
 				Nonce: fmt.Sprintf("%x", nonce),      // Nonce used in encrypting the master key
@@ -85,18 +87,22 @@ func InitVault() {
 func GetMasterKey(confirm, getPassphrase bool) []byte {
 	// Retrieve hashed passphrase either from console or seal
 	var passphrase []byte
-	if !IsUnsealed() {
-		pass, err := GetPassphrase("Enter passphrase", confirm)
-		if err != nil {
-			logrus.Fatalf("could not read passphrase: %s", err)
+	if len(passphraseCache) == 0 {
+		if !IsUnsealed() {
+			pass, err := GetPassphrase("Enter passphrase", confirm)
+			if err != nil {
+				logrus.Fatalf("could not read passphrase: %s", err)
+			}
+			passphrase = GenerateKey(pass)
+		} else {
+			seal, err := GetSeal()
+			if err != nil {
+				logrus.Fatalf("could not retrieve passphrase from seal: %s", err)
+			}
+			passphrase = seal
 		}
-		passphrase = GenerateKey(pass)
 	} else {
-		seal, err := GetSeal()
-		if err != nil {
-			logrus.Fatalf("could not retrieve passphrase from seal: %s", err)
-		}
-		passphrase = seal
+		passphrase = passphraseCache
 	}
 
 	// Retrieve vault metadata
@@ -108,7 +114,7 @@ func GetMasterKey(confirm, getPassphrase bool) []byte {
 	if err != nil {
 		logrus.Fatalf("could not read vault metadata salt: %s", err)
 	}
-	var meta VaultMeta
+	var meta util.VaultMeta
 	err = json.Unmarshal(metaJson, &meta)
 	if err != nil {
 		logrus.Fatalf("could not read vault metadata: %s", err)
@@ -136,6 +142,8 @@ func GetMasterKey(confirm, getPassphrase bool) []byte {
 			// Go to the next key slot
 			continue
 		}
+
+		passphraseCache = passphrase
 
 		if getPassphrase {
 			return passphrase

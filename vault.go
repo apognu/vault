@@ -64,7 +64,7 @@ func main() {
 	case appShow.FullCommand():
 		showSecret(*appShowPath, *appShowPrint, *appShowClipboard, *appShowClipAttr)
 	case appAdd.FullCommand():
-		addSecret(*appAddPath, *appAddAttrs, []string{}, *appAddGeneratorLength, false, []string{})
+		addSecret(*appAddPath, *appAddAttrs, *appAddGeneratorLength, false, []string{})
 	case appEdit.FullCommand():
 		editSecret(*appEditPath, *appEditAttrs, *appEditDeletedAttrs, *appEditGeneratorLength)
 	case appDelete.FullCommand():

@@ -6,7 +6,7 @@ Personal project of a git-based encrypted password store. Each "password" is act
 
 The whole store directory is located under $HOME/.vault (overridable through the VAULT_PATH environment variable) and can be pushed to a remote git repository though the ```vault``` command.
 
-**This is a draft in progress, I would be very cautious with using it to store your most precious passwords.**
+**This is a draft in progress, I would be very cautious with using it to store your most precious passwords. Plus, the storage format is bound to change until 1.0, data will be unusable when it does.**
 
 ## Create the vault
 

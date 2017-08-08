@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/apognu/vault/util"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/ssh/terminal"
@@ -70,7 +71,7 @@ func GenerateKey(passphrase []byte) []byte {
 	return hash
 }
 
-func EncryptData(attrs map[string]string, passphrase []byte, eyesOnly []string) (*Secret, error) {
+func EncryptData(attrs util.AttributeMap, passphrase []byte) (*util.Secret, error) {
 	salt := uuid.New().String()
 	key := pbkdf2.Key(passphrase, []byte(salt), 4096, 32, sha512.New)
 
@@ -82,15 +83,14 @@ func EncryptData(attrs map[string]string, passphrase []byte, eyesOnly []string) 
 	nonce, aesgcm := GetCipher(key, nil)
 	ciphertext := aesgcm.Seal(nil, nonce, plainData, nil)
 
-	return &Secret{
-		Salt:     fmt.Sprintf("%x", salt),
-		Nonce:    fmt.Sprintf("%x", nonce),
-		Data:     fmt.Sprintf("%x", ciphertext),
-		EyesOnly: eyesOnly,
+	return &util.Secret{
+		Salt:  fmt.Sprintf("%x", salt),
+		Nonce: fmt.Sprintf("%x", nonce),
+		Data:  fmt.Sprintf("%x", ciphertext),
 	}, nil
 }
 
-func DecryptData(secret *Secret, passphrase []byte) (map[string]string, error) {
+func DecryptData(secret *util.Secret, passphrase []byte) (util.AttributeMap, error) {
 	salt, err := hex.DecodeString(secret.Salt)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func DecryptData(secret *Secret, passphrase []byte) (map[string]string, error) {
 		return nil, err
 	}
 
-	var attrs map[string]string
+	var attrs util.AttributeMap
 	err = json.Unmarshal(plainJson, &attrs)
 	if err != nil {
 		return nil, err

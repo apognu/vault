@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/apognu/vault/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,12 +20,12 @@ func TestKeyGeneration(t *testing.T) {
 
 func TestEncryption(t *testing.T) {
 	passphrase := []byte("Sup3rS3cre7")
-	attrs := map[string]string{
-		"username": "apognu",
-		"password": "strongpassword",
+	attrs := util.AttributeMap{
+		"username": &util.Attribute{Value: "apognu"},
+		"password": &util.Attribute{Value: "strongpassword"},
 	}
 
-	encryptedSecret, err := EncryptData(attrs, passphrase, []string{})
+	encryptedSecret, err := EncryptData(attrs, passphrase)
 	assert.Nil(t, err)
 	assert.NotNil(t, encryptedSecret)
 
@@ -32,17 +33,17 @@ func TestEncryption(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.NotNil(t, decryptedAttrs)
-	assert.Equal(t, "apognu", decryptedAttrs["username"], "username should be 'apognu'")
-	assert.Equal(t, "strongpassword", decryptedAttrs["password"], "password should be 'strongpassword'")
+	assert.Equal(t, "apognu", decryptedAttrs["username"].Value, "username should be 'apognu'")
+	assert.Equal(t, "strongpassword", decryptedAttrs["password"].Value, "password should be 'strongpassword'")
 }
 
 func TestFailingEncryption(t *testing.T) {
-	attrs := map[string]string{
-		"username": "apognu",
-		"password": "strongpassword",
+	attrs := util.AttributeMap{
+		"username": &util.Attribute{Value: "apognu"},
+		"password": &util.Attribute{Value: "strongpassword"},
 	}
 
-	encryptedSecret, err := EncryptData(attrs, []byte("Sup3rS3cre7"), []string{})
+	encryptedSecret, err := EncryptData(attrs, []byte("Sup3rS3cre7"))
 	assert.Nil(t, err)
 	assert.NotNil(t, encryptedSecret)
 

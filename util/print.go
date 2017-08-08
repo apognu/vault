@@ -13,9 +13,10 @@ var (
 	magenta = color.New(color.FgMagenta).SprintfFunc()
 	blue    = color.New(color.FgBlue).SprintfFunc()
 	red     = color.New(color.FgRed).SprintfFunc()
+	green   = color.New(color.FgGreen).SprintfFunc()
 )
 
-func FormatAttributes(path string, attrs map[string]string, eyesOnly []string, print bool) {
+func FormatAttributes(path string, attrs AttributeMap, print bool) {
 	maxLength := 0
 	for k, _ := range attrs {
 		if len(k) > maxLength {
@@ -39,14 +40,19 @@ func FormatAttributes(path string, attrs map[string]string, eyesOnly []string, p
 
 	for k, v := range attrs {
 		// Redact display of eyes-only attributes if -p is not set
-		if StringArrayContains(eyesOnly, k) {
+		if v.EyesOnly {
 			if print {
-				v = red(v)
+				v.Value = red(v.Value)
 			} else {
-				v = red("<redacted>")
+				v.Value = red("<redacted>")
 			}
 		}
-		fmt.Printf(lineFmt, magenta(k), magenta("="), v)
+		if v.File {
+			if !print {
+				v.Value = green("<file content>")
+			}
+		}
+		fmt.Printf(lineFmt, magenta(k), magenta("="), v.Value)
 	}
 }
 

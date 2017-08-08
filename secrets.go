@@ -23,7 +23,7 @@ func listSecrets(path string) {
 	util.FormatDirectory(path, 0)
 }
 
-func getSecret(path string) (*crypt.Secret, map[string]string) {
+func getSecret(path string) (*util.Secret, util.AttributeMap) {
 	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		logrus.Fatal("secret does not exist")
@@ -39,7 +39,7 @@ func getSecret(path string) (*crypt.Secret, map[string]string) {
 		logrus.Fatalf("could not decode secret: %s", err)
 	}
 
-	var cipherData crypt.Secret
+	var cipherData util.Secret
 	err = json.Unmarshal(cipherJson, &cipherData)
 	if err != nil {
 		logrus.Fatalf("could not unmarshal secret: %s", err)
@@ -58,19 +58,19 @@ func getSecret(path string) (*crypt.Secret, map[string]string) {
 }
 
 func showSecret(path string, print bool, clip bool, clipAttr string) {
-	cipherData, attrs := getSecret(path)
+	_, attrs := getSecret(path)
 
 	if clipAttr == "" {
-		if len(cipherData.EyesOnly) == 1 {
-			clipAttr = cipherData.EyesOnly[0]
+		if attrs.EyesOnlyCount() == 1 {
+			clipAttr = attrs.FindFirstEyesOnly()
 		} else {
 			clipAttr = "password"
 		}
 	}
 
 	if clip {
-		if attrs[clipAttr] != "" {
-			clipboard.WriteAll(attrs[clipAttr])
+		if attrs[clipAttr] != nil {
+			clipboard.WriteAll(attrs[clipAttr].Value)
 			logrus.Infof("attribute '%s' of '%s' was copied to your clipboard", clipAttr, path)
 			return
 		} else {
@@ -78,10 +78,10 @@ func showSecret(path string, print bool, clip bool, clipAttr string) {
 		}
 	}
 
-	util.FormatAttributes(path, attrs, cipherData.EyesOnly, print)
+	util.FormatAttributes(path, attrs, print)
 }
 
-func addSecret(path string, attrs map[string]string, eyesOnly []string, generatorLength int, edit bool, editedAtts []string) {
+func addSecret(path string, attributes map[string]string, generatorLength int, edit bool, editedAttrs []string) {
 	// Check if the secret already exists in ADD mode
 	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if !edit {
@@ -90,28 +90,42 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, generato
 		}
 	}
 
+	attrs := make(util.AttributeMap)
+	for k, v := range attributes {
+		attrs[k] = &util.Attribute{
+			Value: v,
+		}
+	}
+
+	setSecret(path, attrs, generatorLength, edit, editedAttrs)
+}
+
+func setSecret(path string, attrs util.AttributeMap, generatorLength int, edit bool, editedAttrs []string) {
+	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
+
 	// For each attribute, set its value
 	for k, v := range attrs {
 		// If eyes-only attirbute, prompt for it on the command-line
-		if v == "" {
+		if v.Value == "" {
 			pass, err := crypt.GetPassphrase(fmt.Sprintf("Value for '%s'", k), false)
 			if err != nil {
 				logrus.Fatalf("could not read attribute: %s", err)
 			}
-			attrs[k] = string(pass)
-
-			// Store the eyes-only state
-			if !util.StringArrayContains(eyesOnly, k) {
-				eyesOnly = append(eyesOnly, k)
+			attrs[k].Value = string(pass)
+			attrs[k].EyesOnly = true
+		} else if v.Value[0] == '@' {
+			filePath := v.Value[1:]
+			content, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				logrus.Fatalf("could not open file %s: %s", filePath, err)
 			}
-		} else if v == "-" {
-			attrs[k] = crypt.GeneratePassword(generatorLength)
-			eyesOnly = append(eyesOnly, k)
+			attrs[k].Value = string(content)
+			attrs[k].File = true
+		} else if v.Value == "-" {
+			attrs[k].Value = crypt.GeneratePassword(generatorLength)
+			attrs[k].EyesOnly = true
 		} else {
-			// If the attribute is NOT eyes-only, potentially remove it from the list
-			if util.StringArrayContains(editedAtts, k) {
-				eyesOnly = util.RemoveFromSlice(eyesOnly, k)
-			}
+			attrs[k].EyesOnly = false
 		}
 	}
 
@@ -129,7 +143,7 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, generato
 	secretFile.Chmod(0600)
 
 	// Get encrypted secret Go struct
-	cipherData, err := crypt.EncryptData(attrs, masterKey, eyesOnly)
+	cipherData, err := crypt.EncryptData(attrs, masterKey)
 	if err != nil {
 		logrus.Fatalf("could not encrypt secret: %s", err)
 	}
@@ -154,12 +168,16 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, generato
 }
 
 func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, generatorLength int) {
-	cipherData, attrs := getSecret(path)
+	_, attrs := getSecret(path)
 	editedAttrs := make([]string, 0)
 
 	// Replace old attributes with new ones
-	for k, _ := range newAttrs {
-		attrs[k] = newAttrs[k]
+	for k, v := range newAttrs {
+		if attrs[k] == nil {
+			attrs[k] = &util.Attribute{Value: v}
+		} else {
+			attrs[k].Value = v
+		}
 		editedAttrs = append(editedAttrs, k)
 	}
 
@@ -168,7 +186,7 @@ func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, 
 		delete(attrs, k)
 	}
 
-	addSecret(path, attrs, cipherData.EyesOnly, generatorLength, true, editedAttrs)
+	setSecret(path, attrs, generatorLength, true, editedAttrs)
 }
 
 func deleteSecret(path string) {
