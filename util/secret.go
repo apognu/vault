@@ -1,5 +1,10 @@
 package util
 
+const (
+	BpkdfIterations = 8192
+	BpkdfKeySize    = 32
+)
+
 type MasterKey struct {
 	Comment   string `json:"comment"`
 	CreatedOn int    `json:"created_on"`

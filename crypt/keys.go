@@ -27,7 +27,7 @@ func AddKey(comment string) {
 		logrus.Fatalf("could not read passphrase: %s", err)
 	}
 	passSalt := uuid.New().String()
-	passKey := pbkdf2.Key(GenerateKey([]byte(passphrase)), []byte(passSalt), 4096, 32, sha512.New)
+	passKey := pbkdf2.Key(GenerateKey([]byte(passphrase)), []byte(passSalt), util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
 
 	nonce, aesgcm := GetCipher(passKey, nil)
 	ciphertext := aesgcm.Seal(nil, nonce, masterKey, nil)

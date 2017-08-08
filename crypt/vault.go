@@ -34,7 +34,7 @@ func InitVault() {
 		logrus.Fatalf("could not read passphrase: %s", err)
 	}
 	passSalt := uuid.New().String()
-	passKey := pbkdf2.Key(GenerateKey([]byte(passPhrase)), []byte(passSalt), 4096, 32, sha512.New)
+	passKey := pbkdf2.Key(GenerateKey([]byte(passPhrase)), []byte(passSalt), util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
 
 	// Generate random master key
 	keyBytes := make([]byte, 4096)
@@ -49,7 +49,7 @@ func InitVault() {
 		logrus.Fatalf("could not generate salt: %s", err)
 	}
 
-	key := pbkdf2.Key(keyBytes, []byte(masterSalt.String()), 4096, 32, sha512.New)
+	key := pbkdf2.Key(keyBytes, []byte(masterSalt.String()), util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
 	nonce, aesgcm := GetCipher(passKey, nil)
 	ciphertext := aesgcm.Seal(nil, nonce, key, nil)
 
@@ -79,7 +79,7 @@ func InitVault() {
 		logrus.Fatalf("could not marshal secret: %s", err)
 	}
 
-	_, err = metaFile.Write([]byte(fmt.Sprintf("%x", metaJson)))
+	_, err = metaFile.Write(metaJson)
 	if err != nil {
 		logrus.Fatalf("could not write secret: %s", err)
 	}
@@ -88,13 +88,9 @@ func InitVault() {
 }
 
 func GetVaultMeta() util.VaultMeta {
-	metaFile, err := ioutil.ReadFile(fmt.Sprintf("%s/_vault.meta", util.GetVaultPath()))
+	metaJson, err := ioutil.ReadFile(fmt.Sprintf("%s/_vault.meta", util.GetVaultPath()))
 	if err != nil {
 		logrus.Fatalf("could not open vault metadata: %s", err)
-	}
-	metaJson, err := hex.DecodeString(string(metaFile))
-	if err != nil {
-		logrus.Fatalf("could not read vault metadata salt: %s", err)
 	}
 	var meta util.VaultMeta
 	err = json.Unmarshal(metaJson, &meta)
@@ -143,7 +139,7 @@ func GetMasterKey(confirm, getPassphrase bool) []byte {
 			logrus.Fatalf("could not read vault metadata data: %s", err)
 		}
 
-		key := pbkdf2.Key(passphrase, []byte(salt), 4096, 32, sha512.New)
+		key := pbkdf2.Key(passphrase, []byte(salt), util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
 		nonce, aesgcm := GetCipher(key, nonce)
 		masterKey, err := aesgcm.Open(nil, nonce, data, nil)
 		if err != nil {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -29,14 +28,9 @@ func getSecret(path string) (*util.Secret, util.AttributeMap) {
 		logrus.Fatal("secret does not exist")
 	}
 
-	cipherHex, err := ioutil.ReadFile(filePath)
+	cipherJson, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		logrus.Fatalf("could not retrieve secret: %s", err)
-	}
-
-	cipherJson, err := hex.DecodeString(string(cipherHex))
-	if err != nil {
-		logrus.Fatalf("could not decode secret: %s", err)
 	}
 
 	var cipherData util.Secret
@@ -105,7 +99,7 @@ func setSecret(path string, attrs util.AttributeMap, generatorLength int, edit b
 
 	// For each attribute, set its value
 	for k, v := range attrs {
-		// If eyes-only attirbute, prompt for it on the command-line
+		// If eyes-only attribute, prompt for it on the command-line
 		if v.Value == "" {
 			pass, err := crypt.GetPassphrase(fmt.Sprintf("Value for '%s'", k), false)
 			if err != nil {
@@ -153,7 +147,7 @@ func setSecret(path string, attrs util.AttributeMap, generatorLength int, edit b
 		logrus.Fatalf("could not marshal secret: %s", err)
 	}
 
-	_, err = secretFile.Write([]byte(fmt.Sprintf("%x", cipherJson)))
+	_, err = secretFile.Write(cipherJson)
 	if err != nil {
 		logrus.Fatalf("could not write secret: %s", err)
 	}

@@ -73,7 +73,7 @@ func GenerateKey(passphrase []byte) []byte {
 
 func EncryptData(attrs util.AttributeMap, passphrase []byte) (*util.Secret, error) {
 	salt := uuid.New().String()
-	key := pbkdf2.Key(passphrase, []byte(salt), 4096, 32, sha512.New)
+	key := pbkdf2.Key(passphrase, []byte(salt), util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
 
 	plainData, err := json.Marshal(attrs)
 	if err != nil {
@@ -104,7 +104,7 @@ func DecryptData(secret *util.Secret, passphrase []byte) (util.AttributeMap, err
 		return nil, err
 	}
 
-	key := pbkdf2.Key(passphrase, salt, 4096, 32, sha512.New)
+	key := pbkdf2.Key(passphrase, salt, util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
 	_, aesgcm := GetCipher(key, nonce)
 
 	plainJson, err := aesgcm.Open(nil, nonce, cipherData, nil)
