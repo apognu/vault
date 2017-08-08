@@ -16,6 +16,9 @@ func main() {
 
 	appInit := app.Command("init", "initiate the vault")
 
+	appKey := app.Command("key", "vault key management")
+	appKeyList := appKey.Command("list", "list all keys available in the vault")
+
 	appList := app.Command("list", "list all secrets")
 	appListPath := appList.Arg("path", "secret path").Default("/").String()
 
@@ -59,6 +62,9 @@ func main() {
 	util.AssertVaultExists()
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	case appKeyList.FullCommand():
+		crypto.listKeys()
+	
 	case appList.FullCommand():
 		listSecrets(*appListPath)
 	case appShow.FullCommand():
@@ -69,6 +75,7 @@ func main() {
 		editSecret(*appEditPath, *appEditAttrs, *appEditDeletedAttrs, *appEditGeneratorLength)
 	case appDelete.FullCommand():
 		deleteSecret(*appDeletePath)
+
 	case appGitClone.FullCommand():
 		gitClone(*appGitCloneURL)
 	case appGitInit.FullCommand():
@@ -79,6 +86,7 @@ func main() {
 		gitPush()
 	case appGitPull.FullCommand():
 		gitPull()
+
 	case appUnseal.FullCommand():
 		crypt.Unseal()
 	case appSeal.FullCommand():

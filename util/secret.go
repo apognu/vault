@@ -1,9 +1,10 @@
 package util
 
 type MasterKey struct {
-	Salt  string `json:"salt"`
-	Nonce string `json:"nonce"`
-	Data  string `json:"data"`
+	CreatedOn int    `json:"created_on"`
+	Salt      string `json:"salt"`
+	Nonce     string `json:"nonce"`
+	Data      string `json:"data"`
 }
 
 type VaultMeta struct {
