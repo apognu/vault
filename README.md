@@ -102,10 +102,9 @@ $ vault seal
 
 ## Git integration
 
-You can enable git integration by running the following command:
+On vault create, it is automatically set up in a local git repository. You can link it to a remote repository like so:
 
 ```
-$ vault git init
 $ vault git remote <url>
 ```
 

@@ -49,7 +49,6 @@ func main() {
 	appGit := app.Command("git", "archive the store in a git repository")
 	appGitClone := appGit.Command("clone", "clone an existing store repository")
 	appGitCloneURL := appGitClone.Arg("url", "remote store repository URL").Required().String()
-	appGitInit := appGit.Command("init", "initialize git local repository")
 	appGitRemote := appGit.Command("remote", "set the remote git repository to push to")
 	appGitRemoteURL := appGitRemote.Arg("url", "git repository URL").Required().String()
 	appGitPush := appGit.Command("push", "push the state of the store")
@@ -85,15 +84,13 @@ func main() {
 		deleteSecret(*appDeletePath)
 
 	case appGitClone.FullCommand():
-		gitClone(*appGitCloneURL)
-	case appGitInit.FullCommand():
-		gitInit()
+		util.GitClone(*appGitCloneURL)
 	case appGitRemote.FullCommand():
-		gitRemote(*appGitRemoteURL)
+		util.GitRemote(*appGitRemoteURL)
 	case appGitPush.FullCommand():
-		gitPush()
+		util.GitPush()
 	case appGitPull.FullCommand():
-		gitPull()
+		util.GitPull()
 
 	case appUnseal.FullCommand():
 		crypt.Unseal()

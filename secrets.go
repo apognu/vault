@@ -154,10 +154,10 @@ func setSecret(path string, attrs util.AttributeMap, generatorLength int, edit b
 
 	if edit {
 		logrus.Infof("secret '%s' edited successfully", path)
-		gitCommit(path, GIT_EDIT)
+		util.GitCommit(path, util.GIT_EDIT, "")
 	} else {
 		logrus.Infof("secret '%s' created successfully", path)
-		gitCommit(path, GIT_ADD)
+		util.GitCommit(path, util.GIT_ADD, "")
 	}
 }
 
@@ -190,7 +190,7 @@ func deleteSecret(path string) {
 	}
 
 	logrus.Infof("secret '%s' deleted successfully", path)
-	gitCommit(path, GIT_DELETE)
+	util.GitCommit(path, util.GIT_DELETE, "")
 
 	// Remove any empty parent directory
 	for {

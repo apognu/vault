@@ -28,6 +28,10 @@ func createVault() error {
 }
 
 func InitVault() {
+	if _, err := os.Stat(util.GetVaultPath()); !os.IsNotExist(err) {
+		logrus.Fatalf("vault already exists at %s", util.GetVaultPath())
+	}
+
 	// Retrieve initial passphrase
 	passPhrase, err := GetPassphrase("Initial vault passphrase", true)
 	if err != nil {
@@ -84,7 +88,10 @@ func InitVault() {
 		logrus.Fatalf("could not write secret: %s", err)
 	}
 
+	util.GitInit()
+
 	logrus.Info("vault created successfully")
+	util.GitCommit("_vault.meta", util.GIT_ADD, "Created vault")
 }
 
 func GetVaultMeta() util.VaultMeta {

@@ -59,6 +59,7 @@ func AddKey(comment string) {
 	}
 
 	logrus.Info("key was successfully added")
+	util.GitCommit("_vault.meta", util.GIT_EDIT, fmt.Sprintf("Created key '%s'", comment))
 }
 
 func DeleteKey(id int) {
@@ -69,6 +70,7 @@ func DeleteKey(id int) {
 	if id >= len(meta.MasterKeys) {
 		logrus.Fatal("unknown key ID")
 	}
+	comment := meta.MasterKeys[id].Comment
 	meta.MasterKeys = append(meta.MasterKeys[:id], meta.MasterKeys[id+1:]...)
 
 	// Write vault metadata to metadata file
@@ -89,4 +91,5 @@ func DeleteKey(id int) {
 	}
 
 	logrus.Info("key was successfully deleted")
+	util.GitCommit("_vault.meta", util.GIT_DELETE, fmt.Sprintf("Deleted key '%s'", comment))
 }
