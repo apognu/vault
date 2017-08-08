@@ -9,31 +9,22 @@ import (
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/apognu/vault/crypt"
+	"github.com/apognu/vault/util"
 	"github.com/atotto/clipboard"
 )
 
-func createVault() error {
-	if os.Getenv("HOME") == "" {
-		logrus.Fatal("vault assumes HOME environment variable is set")
-	}
-
-	if _, err := os.Stat(vaultDir); !os.IsNotExist(err) {
-		return nil
-	}
-	return os.MkdirAll(vaultDir, 0700)
-}
-
 func listSecrets(path string) {
-	dirPath := fmt.Sprintf("%s/%s", vaultDir, path)
+	dirPath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		logrus.Fatal("secret does not exist")
 	}
 
-	FormatDirectory(path, 0)
+	util.FormatDirectory(path, 0)
 }
 
-func getSecret(path string) (*Secret, map[string]string) {
-	filePath := fmt.Sprintf("%s/%s", vaultDir, path)
+func getSecret(path string) (*crypt.Secret, map[string]string) {
+	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		logrus.Fatal("secret does not exist")
 	}
@@ -48,24 +39,17 @@ func getSecret(path string) (*Secret, map[string]string) {
 		logrus.Fatalf("could not decode secret: %s", err)
 	}
 
-	var cipherData Secret
+	var cipherData crypt.Secret
 	err = json.Unmarshal(cipherJson, &cipherData)
 	if err != nil {
 		logrus.Fatalf("could not unmarshal secret: %s", err)
 	}
 
 	// Get the passphrase from the console if the store is sealed
-	var passphrase []byte
-	if !isUnsealed() {
-		seal, err := getPassphrase("Enter passphrase", false)
-		if err != nil {
-			logrus.Fatalf("could not read passphrase: %s", err)
-		}
-		passphrase = seal
-	}
+	masterKey := crypt.GetMasterKey(false, false)
 
 	// Decrypt secret encrypted data
-	attrs, err := decryptData(&cipherData, passphrase)
+	attrs, err := crypt.DecryptData(&cipherData, masterKey)
 	if err != nil {
 		logrus.Fatalf("could not decrypt secret: %s", err)
 	}
@@ -94,12 +78,12 @@ func showSecret(path string, print bool, clip bool, clipAttr string) {
 		}
 	}
 
-	FormatAttributes(path, attrs, cipherData.EyesOnly, print)
+	util.FormatAttributes(path, attrs, cipherData.EyesOnly, print)
 }
 
 func addSecret(path string, attrs map[string]string, eyesOnly []string, generatorLength int, edit bool, editedAtts []string) {
 	// Check if the secret already exists in ADD mode
-	filePath := fmt.Sprintf("%s/%s", vaultDir, path)
+	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if !edit {
 		if _, err := os.Stat(filePath); !os.IsNotExist(err) {
 			logrus.Fatal("secret already exists")
@@ -110,27 +94,28 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, generato
 	for k, v := range attrs {
 		// If eyes-only attirbute, prompt for it on the command-line
 		if v == "" {
-			pass, err := getPassphrase(fmt.Sprintf("Value for '%s'", k), false)
+			pass, err := crypt.GetPassphrase(fmt.Sprintf("Value for '%s'", k), false)
 			if err != nil {
 				logrus.Fatalf("could not read attribute: %s", err)
 			}
 			attrs[k] = string(pass)
 
 			// Store the eyes-only state
-			if !StringArrayContains(eyesOnly, k) {
+			if !util.StringArrayContains(eyesOnly, k) {
 				eyesOnly = append(eyesOnly, k)
 			}
 		} else if v == "-" {
-			attrs[k] = GeneratePassword(generatorLength)
+			attrs[k] = crypt.GeneratePassword(generatorLength)
 			eyesOnly = append(eyesOnly, k)
 		} else {
 			// If the attribute is NOT eyes-only, potentially remove it from the list
-			if StringArrayContains(editedAtts, k) {
-				eyesOnly = RemoveFromSlice(eyesOnly, k)
+			if util.StringArrayContains(editedAtts, k) {
+				eyesOnly = util.RemoveFromSlice(eyesOnly, k)
 			}
 		}
 	}
 
+	masterKey := crypt.GetMasterKey(false, false)
 	err := os.MkdirAll(filepath.Dir(filePath), 0700)
 	if err != nil {
 		logrus.Fatalf("could not create hierarchy: %s", err)
@@ -143,17 +128,8 @@ func addSecret(path string, attrs map[string]string, eyesOnly []string, generato
 	defer secretFile.Close()
 	secretFile.Chmod(0600)
 
-	var passphrase []byte
-	if !isUnsealed() {
-		seal, err := getPassphrase("Enter passphrase", true)
-		if err != nil {
-			logrus.Fatalf("could not read passphrase: %s", err)
-		}
-		passphrase = seal
-	}
-
 	// Get encrypted secret Go struct
-	cipherData, err := encryptData(attrs, passphrase, eyesOnly)
+	cipherData, err := crypt.EncryptData(attrs, masterKey, eyesOnly)
 	if err != nil {
 		logrus.Fatalf("could not encrypt secret: %s", err)
 	}
@@ -196,7 +172,7 @@ func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, 
 }
 
 func deleteSecret(path string) {
-	err := os.Remove(fmt.Sprintf("%s/%s", vaultDir, path))
+	err := os.Remove(fmt.Sprintf("%s/%s", util.GetVaultPath(), path))
 	if err != nil {
 		logrus.Fatalf("could not remove secret: %s", err)
 	}
@@ -210,12 +186,10 @@ func deleteSecret(path string) {
 		if dir == "" {
 			break
 		}
-
-		err := os.Remove(fmt.Sprintf("%s/%s", vaultDir, dir))
+		err := os.Remove(fmt.Sprintf("%s/%s", util.GetVaultPath(), dir))
 		if err != nil {
 			return
 		}
-
 		path = dir
 	}
 

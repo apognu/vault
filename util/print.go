@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"fmt"
@@ -8,13 +8,6 @@ import (
 
 	"github.com/fatih/color"
 )
-
-type Secret struct {
-	Salt     string   `json:"salt"`
-	Nonce    string   `json:"nonce"`
-	Data     string   `json:"data"`
-	EyesOnly []string `json:"eyesonly"`
-}
 
 var (
 	magenta = color.New(color.FgMagenta).SprintfFunc()
@@ -58,7 +51,7 @@ func FormatAttributes(path string, attrs map[string]string, eyesOnly []string, p
 }
 
 func FormatDirectory(path string, level int) {
-	dirPath := fmt.Sprintf("%s/%s", vaultDir, path)
+	dirPath := fmt.Sprintf("%s/%s", GetVaultPath(), path)
 
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
@@ -83,7 +76,7 @@ func FormatDirectory(path string, level int) {
 	}
 
 	for _, file := range files {
-		if file.Name() == ".git" {
+		if file.Name() == ".git" || file.Name() == "_vault.meta" {
 			continue
 		}
 
@@ -95,23 +88,4 @@ func FormatDirectory(path string, level int) {
 			fmt.Printf("%s  - %s\n", indent, file.Name())
 		}
 	}
-}
-
-func StringArrayContains(arr []string, item string) bool {
-	for _, v := range arr {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
-
-func RemoveFromSlice(arr []string, item string) []string {
-	newArr := make([]string, 0)
-	for _, v := range arr {
-		if v != item {
-			newArr = append(newArr, v)
-		}
-	}
-	return newArr
 }

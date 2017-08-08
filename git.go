@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/apognu/vault/util"
 )
 
 const (
@@ -16,14 +17,14 @@ const (
 )
 
 func gitClone(url string) {
-	files, err := ioutil.ReadDir(vaultDir)
+	files, err := ioutil.ReadDir(util.GetVaultPath())
 	if err != nil {
-		logrus.Fatalf("%s does not exist", vaultDir)
+		logrus.Fatalf("%s does not exist", util.GetVaultPath())
 	}
 	if len(files) > 0 {
-		logrus.Fatalf("%s directory already exists and contains files", vaultDir)
+		logrus.Fatalf("%s directory already exists and contains files", util.GetVaultPath())
 	}
-	runGitCommand(false, "clone", url, vaultDir)
+	runGitCommand(false, "clone", url, util.GetVaultPath())
 }
 
 func gitInit() {
@@ -61,7 +62,7 @@ func gitPull() {
 }
 
 func runGitCommand(suppress bool, args ...string) error {
-	err := os.Chdir(vaultDir)
+	err := os.Chdir(util.GetVaultPath())
 	if err != nil {
 		logrus.Fatalf("could not run git command: %s", err)
 	}

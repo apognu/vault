@@ -1,9 +1,9 @@
-package main
+package crypt
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
@@ -16,7 +16,27 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func getPassphrase(prompt string, confirm bool) ([]byte, error) {
+func GetCipher(passphrase, nonce []byte) ([]byte, cipher.AEAD) {
+	if nonce == nil {
+		nonce = make([]byte, 12)
+		if _, err := io.ReadFull(crand.Reader, nonce); err != nil {
+			logrus.Fatalf("could not generate nonce: %s", err)
+		}
+	}
+
+	block, err := aes.NewCipher(passphrase)
+	if err != nil {
+		logrus.Fatalf("could not create cipher: %s", err)
+	}
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		logrus.Fatalf("could not create cipher: %s", err)
+	}
+
+	return nonce, aesgcm
+}
+
+func GetPassphrase(prompt string, confirm bool) ([]byte, error) {
 	fmt.Printf("%s: ", prompt)
 	passphrase, err := terminal.ReadPassword(0)
 	fmt.Println("")
@@ -37,7 +57,7 @@ func getPassphrase(prompt string, confirm bool) ([]byte, error) {
 	return passphrase, err
 }
 
-func generateKey(passphrase []byte) []byte {
+func GenerateKey(passphrase []byte) []byte {
 	sha := sha512.New()
 	sha.Write([]byte(passphrase))
 	hash := sha.Sum(nil)
@@ -45,41 +65,16 @@ func generateKey(passphrase []byte) []byte {
 	return hash
 }
 
-func encryptData(attrs map[string]string, passphrase []byte, eyesOnly []string) (*Secret, error) {
-	var hash []byte
-	if isUnsealed() {
-		seal, err := getSeal()
-		if err != nil {
-			logrus.Fatalf("could not retrieve seal: %s", err)
-		}
-		hash = seal
-	} else {
-		hash = generateKey(passphrase)
-	}
-
+func EncryptData(attrs map[string]string, passphrase []byte, eyesOnly []string) (*Secret, error) {
 	salt := uuid.New().String()
-	key := pbkdf2.Key(hash, []byte(salt), 4096, 32, sha512.New)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	nonce := make([]byte, 12)
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil, err
-	}
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
+	key := pbkdf2.Key(passphrase, []byte(salt), 4096, 32, sha512.New)
 
 	plainData, err := json.Marshal(attrs)
 	if err != nil {
 		return nil, err
 	}
 
+	nonce, aesgcm := GetCipher(key, nil)
 	ciphertext := aesgcm.Seal(nil, nonce, plainData, nil)
 
 	return &Secret{
@@ -90,44 +85,22 @@ func encryptData(attrs map[string]string, passphrase []byte, eyesOnly []string) 
 	}, nil
 }
 
-func decryptData(secret *Secret, passphrase []byte) (map[string]string, error) {
+func DecryptData(secret *Secret, passphrase []byte) (map[string]string, error) {
 	salt, err := hex.DecodeString(secret.Salt)
 	if err != nil {
 		return nil, err
 	}
-
 	nonce, err := hex.DecodeString(secret.Nonce)
 	if err != nil {
 		return nil, err
 	}
-
 	cipherData, err := hex.DecodeString(secret.Data)
 	if err != nil {
 		return nil, err
 	}
 
-	var hash []byte
-	if isUnsealed() {
-		seal, err := getSeal()
-		if err != nil {
-			logrus.Fatalf("could not retrieve seal: %s", err)
-		}
-		hash = seal
-	} else {
-		hash = generateKey(passphrase)
-	}
-
-	key := pbkdf2.Key(hash, salt, 4096, 32, sha512.New)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
+	key := pbkdf2.Key(passphrase, salt, 4096, 32, sha512.New)
+	_, aesgcm := GetCipher(key, nonce)
 
 	plainJson, err := aesgcm.Open(nil, nonce, cipherData, nil)
 	if err != nil {

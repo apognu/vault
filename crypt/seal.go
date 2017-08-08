@@ -1,4 +1,4 @@
-package main
+package crypt
 
 import (
 	"fmt"
@@ -13,30 +13,24 @@ var (
 	sealPath = fmt.Sprintf("/tmp/vault-%s.seal", user)
 )
 
-func unseal() {
-	if isUnsealed() {
+func Unseal() {
+	if IsUnsealed() {
 		logrus.Fatal("store is already unsealed")
 	}
 
-	passphrase, err := getPassphrase("Enter passphrase", true)
-	if err != nil {
-		logrus.Fatalf("could not unseal store: %s", err)
-	}
-
-	key := generateKey([]byte(passphrase))
-
+	passphrase := GetMasterKey(false, true)
 	sealFile, err := os.Create(sealPath)
 	if err != nil {
 		logrus.Fatalf("could not unseal store: %s", err)
 	}
 	defer sealFile.Close()
 	sealFile.Chmod(0400)
-	sealFile.Write(key)
+	sealFile.Write(passphrase)
 
 	logrus.Info("store is now unsealed")
 }
 
-func seal() {
+func Seal() {
 	err := os.Remove(sealPath)
 	if err != nil {
 		logrus.Fatalf("could not seal store: %s", err)
@@ -45,14 +39,14 @@ func seal() {
 	logrus.Info("store is now sealed")
 }
 
-func isUnsealed() bool {
+func IsUnsealed() bool {
 	if _, err := os.Stat(sealPath); os.IsNotExist(err) {
 		return false
 	}
 	return true
 }
 
-func getSeal() ([]byte, error) {
+func GetSeal() ([]byte, error) {
 	key, err := ioutil.ReadFile(sealPath)
 	if err != nil {
 		return nil, err

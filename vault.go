@@ -1,24 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/apognu/vault/crypt"
+	"github.com/apognu/vault/util"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-var vaultDir = fmt.Sprintf("%s/.vault", os.Getenv("HOME"))
-
 func main() {
-	if os.Getenv("VAULT_PATH") != "" {
-		vaultDir = os.Getenv("VAULT_PATH")
-	}
-
-	createVault()
-
 	app := kingpin.New("vault", "Simple encrypted data store")
 	app.HelpFlag.Short('h')
 	app.UsageTemplate(kingpin.CompactUsageTemplate)
+
+	appInit := app.Command("init", "initiate the vault")
 
 	appList := app.Command("list", "list all secrets")
 	appListPath := appList.Arg("path", "secret path").Default("/").String()
@@ -56,6 +52,13 @@ func main() {
 	appSeal := app.Command("seal", "seal store")
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	case appInit.FullCommand():
+		crypt.InitVault()
+	}
+
+	util.AssertVaultExists()
+
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case appList.FullCommand():
 		listSecrets(*appListPath)
 	case appShow.FullCommand():
@@ -77,8 +80,8 @@ func main() {
 	case appGitPull.FullCommand():
 		gitPull()
 	case appUnseal.FullCommand():
-		unseal()
+		crypt.Unseal()
 	case appSeal.FullCommand():
-		seal()
+		crypt.Seal()
 	}
 }
