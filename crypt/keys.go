@@ -53,7 +53,7 @@ func AddKey(comment string) {
 		logrus.Fatalf("could not marshal secret: %s", err)
 	}
 
-	_, err = metaFile.Write([]byte(fmt.Sprintf("%x", metaJson)))
+	_, err = metaFile.Write(metaJson)
 	if err != nil {
 		logrus.Fatalf("could not write secret: %s", err)
 	}
@@ -83,7 +83,7 @@ func DeleteKey(id int) {
 		logrus.Fatalf("could not marshal secret: %s", err)
 	}
 
-	_, err = metaFile.Write([]byte(fmt.Sprintf("%x", metaJson)))
+	_, err = metaFile.Write(metaJson)
 	if err != nil {
 		logrus.Fatalf("could not write secret: %s", err)
 	}
