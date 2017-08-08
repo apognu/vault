@@ -1,10 +1,12 @@
 package util
 
 import (
+	"crypto/md5"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -93,5 +95,16 @@ func FormatDirectory(path string, level int) {
 		} else {
 			fmt.Printf("%s  - %s\n", indent, file.Name())
 		}
+	}
+}
+
+func FormatKeyList(keys []MasterKey) {
+	for idx, key := range keys {
+		createdOn := time.Unix(int64(key.CreatedOn), 0)
+		hash := md5.New()
+		hash.Write([]byte(key.Data))
+
+		fmt.Printf(" - #%d (%s) %s\n", idx, magenta(createdOn.Format("Tue, 02 Jan 2006, 15:04")), key.Comment)
+		fmt.Printf("       %x\n", hash.Sum(nil))
 	}
 }

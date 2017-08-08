@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"time"
 
 	"github.com/apognu/vault/util"
 	"github.com/google/uuid"
@@ -55,9 +56,11 @@ func InitVault() {
 	meta := &util.VaultMeta{
 		MasterKeys: []util.MasterKey{
 			{
-				Salt:  fmt.Sprintf("%x", passSalt),   // Salt used to derive the key from the passphrase
-				Nonce: fmt.Sprintf("%x", nonce),      // Nonce used in encrypting the master key
-				Data:  fmt.Sprintf("%x", ciphertext), // Encrypted master key
+				Comment:   "Initial key created on vault creation",
+				CreatedOn: int(time.Now().Unix()),
+				Salt:      fmt.Sprintf("%x", passSalt),   // Salt used to derive the key from the passphrase
+				Nonce:     fmt.Sprintf("%x", nonce),      // Nonce used in encrypting the master key
+				Data:      fmt.Sprintf("%x", ciphertext), // Encrypted master key
 			},
 		},
 	}
@@ -84,6 +87,24 @@ func InitVault() {
 	logrus.Info("vault created successfully")
 }
 
+func GetVaultMeta() util.VaultMeta {
+	metaFile, err := ioutil.ReadFile(fmt.Sprintf("%s/_vault.meta", util.GetVaultPath()))
+	if err != nil {
+		logrus.Fatalf("could not open vault metadata: %s", err)
+	}
+	metaJson, err := hex.DecodeString(string(metaFile))
+	if err != nil {
+		logrus.Fatalf("could not read vault metadata salt: %s", err)
+	}
+	var meta util.VaultMeta
+	err = json.Unmarshal(metaJson, &meta)
+	if err != nil {
+		logrus.Fatalf("could not read vault metadata: %s", err)
+	}
+
+	return meta
+}
+
 func GetMasterKey(confirm, getPassphrase bool) []byte {
 	// Retrieve hashed passphrase either from console or seal
 	var passphrase []byte
@@ -105,20 +126,7 @@ func GetMasterKey(confirm, getPassphrase bool) []byte {
 		passphrase = passphraseCache
 	}
 
-	// Retrieve vault metadata
-	metaFile, err := ioutil.ReadFile(fmt.Sprintf("%s/_vault.meta", util.GetVaultPath()))
-	if err != nil {
-		logrus.Fatalf("could not open vault metadata: %s", err)
-	}
-	metaJson, err := hex.DecodeString(string(metaFile))
-	if err != nil {
-		logrus.Fatalf("could not read vault metadata salt: %s", err)
-	}
-	var meta util.VaultMeta
-	err = json.Unmarshal(metaJson, &meta)
-	if err != nil {
-		logrus.Fatalf("could not read vault metadata: %s", err)
-	}
+	meta := GetVaultMeta()
 
 	// Try and find a key slot than can be decrypted with provided key
 	for _, mkey := range meta.MasterKeys {

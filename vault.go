@@ -18,6 +18,10 @@ func main() {
 
 	appKey := app.Command("key", "vault key management")
 	appKeyList := appKey.Command("list", "list all keys available in the vault")
+	appKeyAdd := appKey.Command("add", "add a key that unlocks the vault")
+	appKeyAddComment := appKeyAdd.Flag("comment", "description of this key").Short('c').Required().String()
+	appKeyDelete := appKey.Command("delete", "delete a key from the vault")
+	appKeyDeleteID := appKeyDelete.Arg("id", "ID of the key to delete").Required().Int()
 
 	appList := app.Command("list", "list all secrets")
 	appListPath := appList.Arg("path", "secret path").Default("/").String()
@@ -63,8 +67,12 @@ func main() {
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case appKeyList.FullCommand():
-		crypto.listKeys()
-	
+		crypt.ListKeys()
+	case appKeyAdd.FullCommand():
+		crypt.AddKey(*appKeyAddComment)
+	case appKeyDelete.FullCommand():
+		crypt.DeleteKey(*appKeyDeleteID)
+
 	case appList.FullCommand():
 		listSecrets(*appListPath)
 	case appShow.FullCommand():

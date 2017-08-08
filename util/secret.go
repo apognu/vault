@@ -1,6 +1,7 @@
 package util
 
 type MasterKey struct {
+	Comment   string `json:"comment"`
 	CreatedOn int    `json:"created_on"`
 	Salt      string `json:"salt"`
 	Nonce     string `json:"nonce"`
