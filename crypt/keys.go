@@ -78,6 +78,8 @@ func InitVault() {
 	if err != nil {
 		logrus.Fatalf("could not write secret: %s", err)
 	}
+
+	logrus.Info("vault created successfully")
 }
 
 func GetMasterKey(confirm, getPassphrase bool) []byte {

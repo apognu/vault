@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/google/uuid"
@@ -40,6 +41,10 @@ func GetPassphrase(prompt string, confirm bool) ([]byte, error) {
 	fmt.Printf("%s: ", prompt)
 	passphrase, err := terminal.ReadPassword(0)
 	fmt.Println("")
+
+	if strings.TrimSpace(string(passphrase)) == "" {
+		logrus.Fatal("could not use empty passphrase")
+	}
 
 	if confirm {
 		fmt.Print("Confirm: ")

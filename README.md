@@ -8,6 +8,17 @@ The whole store directory is located under $HOME/.vault (overridable through the
 
 **This is a draft in progress, I would be very cautious with using it to store your most precious passwords.**
 
+## Create the vault
+
+The following command creates an empty vault and adds one passphrase to be used in it. Later on, you will be able to add more passphrase that can unlock the vault.
+
+```
+$ vault init
+Enter passphrase:
+Confirm:
+INFO[0000] vault created successfully
+```
+
 ## Add a secret
 
 ```
