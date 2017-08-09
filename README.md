@@ -19,6 +19,46 @@ Confirm:
 INFO[0000] vault created successfully
 ```
 
+## Key management
+
+The user passphrase does not directly encrypt the store's secrets. Instead, on vault creation, a master key is randomly generated and encrypted with a key derived from the user password (through PBKDF2). This encrypted master key is stored in a file containing metadata about the store, directly alongside the secrets.
+
+The store's master key can be encrypted with any number of passphrases, so several passphrases (or people) could be used to unlock the store. This also allows for seamlessly changing the passphrase used to unlock the store.
+
+Also, a solution for rotating the store's master key is in the pipes.
+
+The available keys in a store can be listed with the following command:
+
+```
+$ vault key list
+vault key list
+ - #0 (Tue, 09 Aug 2017, 16:25) Initial key created on vault creation
+       721a9b52bfceacc503c056e3b9b93cfa
+ - #1 (Tue, 09 Aug 2017, 21:34) Added key for whatever reason
+       5d41402abc4b2a76b9719d911017c592
+```
+
+And deleted through this:
+
+```
+$ vault key delete 1
+INFO[0000] key was successfully deleted
+```
+
+For obvious reasons, the last key stored in the store's metadata cannot be deleted. You'll have to create another one beforehand.
+
+A new key can be added to the vault, with a custom comment, with this command:
+
+```
+$ vault key add -c 'New key'
+Enter passphrase: 
+New passphrase: 
+Confirm: 
+INFO[0007] key was successfully added
+```
+
+The command will prompt you for one of the existing passphrases, and then to enter and confirm the one you want to add.
+
 ## Add a secret
 
 ```
