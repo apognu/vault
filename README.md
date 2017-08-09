@@ -90,6 +90,19 @@ $ vault add websites.com username=apognu password=-
 
 One can generate passwords with a different size with the ```-l``` option.
 
+### Files attribute
+
+An entire file can be embedded into an attribute with the syntax ```attr=@/path/to/file```. By default, any file attribute will not be printed on the console, and will require the use of ```-c``` or ```-p``` to be used.
+
+```
+$ vault add ssh/keys pubkey=@/home/apognu/.ssh/id_rsa.pub privkey=@/home/apognu/.ssh/id_rsa
+INFO[0010] secret 'ssh/keys' created successfully
+$ vault show ssh/keys
+Store » ssh » keys
+  privkey = <file content>
+   pubkey = <file content>
+```
+
 ## Print a secret
 
 ```
