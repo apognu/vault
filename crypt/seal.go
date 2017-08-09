@@ -4,14 +4,28 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 
 	"github.com/Sirupsen/logrus"
 )
 
 var (
-	user     = os.Getenv("USER")
-	sealPath = fmt.Sprintf("/tmp/vault-%s.seal", user)
+	userName = os.Getenv("USER")
+	sealPath = fmt.Sprintf("/tmp/vault-%s.seal", userName)
 )
+
+func GetSealPath() string {
+	currentUser, err := user.Current()
+	if err != nil {
+		fmt.Println(err)
+		return sealPath
+	}
+	runDir := fmt.Sprintf("/run/user/%s", currentUser.Uid)
+	if _, err := os.Stat(runDir); os.IsNotExist(err) {
+		return sealPath
+	}
+	return fmt.Sprintf("%s/vault-%s.seal", runDir, userName)
+}
 
 func Unseal() {
 	if IsUnsealed() {
@@ -19,7 +33,7 @@ func Unseal() {
 	}
 
 	passphrase := GetMasterKey(false, true)
-	sealFile, err := os.Create(sealPath)
+	sealFile, err := os.Create(GetSealPath())
 	if err != nil {
 		logrus.Fatalf("could not unseal store: %s", err)
 	}
@@ -31,7 +45,7 @@ func Unseal() {
 }
 
 func Seal() {
-	err := os.Remove(sealPath)
+	err := os.Remove(GetSealPath())
 	if err != nil {
 		logrus.Fatalf("could not seal store: %s", err)
 	}
@@ -40,14 +54,14 @@ func Seal() {
 }
 
 func IsUnsealed() bool {
-	if _, err := os.Stat(sealPath); os.IsNotExist(err) {
+	if _, err := os.Stat(GetSealPath()); os.IsNotExist(err) {
 		return false
 	}
 	return true
 }
 
 func GetSeal() ([]byte, error) {
-	key, err := ioutil.ReadFile(sealPath)
+	key, err := ioutil.ReadFile(GetSealPath())
 	if err != nil {
 		return nil, err
 	}
