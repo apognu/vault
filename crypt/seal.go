@@ -17,7 +17,6 @@ var (
 func GetSealPath() string {
 	currentUser, err := user.Current()
 	if err != nil {
-		fmt.Println(err)
 		return sealPath
 	}
 	runDir := fmt.Sprintf("/run/user/%s", currentUser.Uid)
