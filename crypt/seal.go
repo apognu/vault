@@ -44,6 +44,10 @@ func Unseal() {
 }
 
 func Seal() {
+	if !IsUnsealed() {
+		logrus.Fatal("store is already sealed")
+	}
+
 	err := os.Remove(GetSealPath())
 	if err != nil {
 		logrus.Fatalf("could not seal store: %s", err)
