@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/apognu/vault.svg?branch=master)](https://travis-ci.org/apognu/vault)
 
-Personal project of a git-based encrypted password store. Each "password" is actually a JSON-encoded map of strings, encrypted through AES-GCM with a key derived from a passphrase, allowing to store more than just one password for each entry.
+Personal project of a git-based encrypted password store. Each "password" is actually a JSON-encoded map of strings, encrypted through AES-GCM.
 
 The whole store directory is located under $HOME/.vault (overridable through the VAULT_PATH environment variable) and can be pushed to a remote git repository though the ```vault``` command.
 
