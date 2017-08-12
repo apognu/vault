@@ -141,7 +141,11 @@ $ vault show my/secret/file -w
 INFO[0000] attribute written to 'vault-my-secret-file/file'
 ```
 
-For now, all file attributes of the secrets are written to the output directory. A future version of vault may allow for selecting which attributes to consider for writing.
+By default, all file attributes are written to matching files. If you wish to restrict which attribute gets considered for writing, use the ```-f``` option:
+
+```
+$ vault show my/secret/files -w -f file1 -f file2
+```
 
 ## Edit a secret
 

@@ -52,7 +52,7 @@ func getSecret(path string) (*util.Secret, util.AttributeMap) {
 	return &cipherData, attrs
 }
 
-func showSecret(path string, print bool, clip bool, clipAttr string, write bool) {
+func showSecret(path string, print bool, clip bool, clipAttr string, write bool, writeFiles []string) {
 	_, attrs := getSecret(path)
 
 	if clipAttr == "" {
@@ -74,7 +74,7 @@ func showSecret(path string, print bool, clip bool, clipAttr string, write bool)
 	}
 
 	if write {
-		WriteFiles(path, attrs)
+		WriteFiles(path, attrs, writeFiles)
 		return
 	}
 
@@ -212,25 +212,45 @@ func deleteSecret(path string) {
 	}
 }
 
-func WriteFiles(path string, attrs util.AttributeMap) {
+func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string) {
+	fileAttrs := make(util.AttributeMap)
+	for n, a := range attrs {
+		if a.File {
+			if len(writeFiles) != 0 {
+				if !util.StringArrayContains(writeFiles, n) {
+					continue
+				}
+			}
+			fileAttrs[n] = a
+		}
+	}
+
+	if len(fileAttrs) == 0 {
+		logrus.Fatal("no file attribute matching what you requested")
+	}
+
 	dirs, secretName := filepath.Split(path)
-	dir := fmt.Sprintf("vault-%s-%s", strings.Join(strings.Split(filepath.Clean(dirs), string(os.PathSeparator)), "-"), secretName)
+	dir := ""
+	if len(dirs) == 0 {
+		dir = fmt.Sprintf("vault-%s", secretName)
+	} else {
+		dir = fmt.Sprintf("vault-%s-%s", strings.Join(strings.Split(filepath.Clean(dirs), string(os.PathSeparator)), "-"), secretName)
+	}
+
 	if err := os.Mkdir(dir, 0700); err != nil {
 		logrus.Fatalf("could not create directory %s", err)
 	}
 
-	for n, a := range attrs {
-		if a.File {
-			fileName := fmt.Sprintf("%s/%s", dir, n)
-			file, err := os.Create(fileName)
-			if err != nil {
-				logrus.Fatalf("could not create output file: %s", err)
-			}
-			defer file.Close()
-			file.Chmod(0400)
-			file.Write([]byte(a.Value))
-
-			logrus.Infof("attribute written to '%s'", fileName)
+	for n, a := range fileAttrs {
+		fileName := fmt.Sprintf("%s/%s", dir, n)
+		file, err := os.Create(fileName)
+		if err != nil {
+			logrus.Fatalf("could not create output file: %s", err)
 		}
+		defer file.Close()
+		file.Chmod(0400)
+		file.Write([]byte(a.Value))
+
+		logrus.Infof("attribute written to '%s'", fileName)
 	}
 }
