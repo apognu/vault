@@ -8,6 +8,20 @@ The whole store directory is located under $HOME/.vault (overridable through the
 
 **This is a draft in progress, I would be very cautious with using it to store your most precious passwords. Plus, the storage format is bound to change until 1.0, data will be unusable when it does.**
 
+## Summary
+
+ * [Create the vault](#create-the-vault)
+ * [Key management](#key-management)
+ * Secret management
+   * [Add a secret](#add-a-secret)
+     * [Eyes-only attributes](#eyes-only-attributes)
+     * [File attribute](#file-attributes)
+   * [Print a secret](#print-a-secret)
+   * [Edit a secret](#edit-a-secret)
+   * [Delete a secret](#delete-a-secret)
+* [Seal and unseal the vault](#seal-and-unseal-the-vault)
+ * [Git integration](#git-integration)
+
 ## Create the vault
 
 The following command creates an empty vault and adds one passphrase to be used in it. Later on, you will be able to add more passphrase that can unlock the vault.
@@ -103,18 +117,6 @@ Store » ssh » keys
    pubkey = <file content>
 ```
 
-When you use the ```-w``` option in combination with showing a secret containing file attributes, all the file attributes of that secret will be written to files in a directory named after the secret path.
-
-```
-$ vault show my/secret/file
-Store » my » secret » file
-  file = <file content>
-$ vault show my/secret/file -w
-INFO[0000] attribute written to 'vault-my-secret-file/file'
-```
-
-For now, all file attributes of the secrets are written to the output directory. A future version of vault may allow for selecting which attributes to consider for writing.
-
 ## Print a secret
 
 ```
@@ -128,6 +130,18 @@ Store » dir » subdir » website.com
 The ```-p``` option can be used to display the redacted attributes.
 
 The ```-c``` option can be used to copy one attribute to the clipboard. By default, if the entry contains ony one eyes-only attribute, it will be used. If there are more than one eyes-only attribute, the attribute named ```password``` will be copied. If you would like to copy another attribute to your clipboard, use the ```-a``` option.
+
+When you use the ```-w``` option in combination with showing a secret containing file attributes, all the file attributes of that secret will be written to files in a directory named after the secret path.
+
+```
+$ vault show my/secret/file
+Store » my » secret » file
+  file = <file content>
+$ vault show my/secret/file -w
+INFO[0000] attribute written to 'vault-my-secret-file/file'
+```
+
+For now, all file attributes of the secrets are written to the output directory. A future version of vault may allow for selecting which attributes to consider for writing.
 
 ## Edit a secret
 
