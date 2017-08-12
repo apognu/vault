@@ -90,7 +90,7 @@ $ vault add websites.com username=apognu password=-
 
 One can generate passwords with a different size with the ```-l``` option.
 
-### Files attribute
+### File attributes
 
 An entire file can be embedded into an attribute with the syntax ```attr=@/path/to/file```. By default, any file attribute will not be printed on the console, and will require the use of ```-c``` or ```-p``` to be used.
 
@@ -102,6 +102,18 @@ Store » ssh » keys
   privkey = <file content>
    pubkey = <file content>
 ```
+
+When you use the ```-w``` option in combination with showing a secret containing file attributes, all the file attributes of that secret will be written to files in a directory named after the secret path.
+
+```
+$ vault show my/secret/file
+Store » my » secret » file
+  file = <file content>
+$ vault show my/secret/file -w
+INFO[0000] attribute written to 'vault-my-secret-file/file'
+```
+
+For now, all file attributes of the secrets are written to the output directory. A future version of vault may allow for selecting which attributes to consider for writing.
 
 ## Print a secret
 
