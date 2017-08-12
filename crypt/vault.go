@@ -60,7 +60,7 @@ func InitVault() {
 	meta := &util.VaultMeta{
 		MasterKeys: []util.MasterKey{
 			{
-				Comment:   "Initial key created on vault creation",
+				Comment:   "Initial key generated on vault creation",
 				CreatedOn: int(time.Now().Unix()),
 				Salt:      fmt.Sprintf("%x", passSalt),   // Salt used to derive the key from the passphrase
 				Nonce:     fmt.Sprintf("%x", nonce),      // Nonce used in encrypting the master key
