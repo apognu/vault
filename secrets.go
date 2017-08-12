@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/apognu/vault/crypt"
@@ -51,7 +52,7 @@ func getSecret(path string) (*util.Secret, util.AttributeMap) {
 	return &cipherData, attrs
 }
 
-func showSecret(path string, print bool, clip bool, clipAttr string) {
+func showSecret(path string, print bool, clip bool, clipAttr string, write bool) {
 	_, attrs := getSecret(path)
 
 	if clipAttr == "" {
@@ -70,6 +71,11 @@ func showSecret(path string, print bool, clip bool, clipAttr string) {
 		} else {
 			logrus.Fatalf("could not read attribute '%s'", clipAttr)
 		}
+	}
+
+	if write {
+		WriteFiles(path, attrs)
+		return
 	}
 
 	util.FormatAttributes(path, attrs, print)
@@ -204,5 +210,27 @@ func deleteSecret(path string) {
 		}
 		path = dir
 	}
+}
 
+func WriteFiles(path string, attrs util.AttributeMap) {
+	dirs, secretName := filepath.Split(path)
+	dir := fmt.Sprintf("vault-%s-%s", strings.Join(strings.Split(filepath.Clean(dirs), string(os.PathSeparator)), "-"), secretName)
+	if err := os.Mkdir(dir, 0700); err != nil {
+		logrus.Fatalf("could not create directory %s", err)
+	}
+
+	for n, a := range attrs {
+		if a.File {
+			fileName := fmt.Sprintf("%s/%s", dir, n)
+			file, err := os.Create(fileName)
+			if err != nil {
+				logrus.Fatalf("could not create output file: %s", err)
+			}
+			defer file.Close()
+			file.Chmod(0400)
+			file.Write([]byte(a.Value))
+
+			logrus.Infof("attribute written to '%s'", fileName)
+		}
+	}
 }
