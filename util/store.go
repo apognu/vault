@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 )
@@ -20,5 +21,5 @@ func GetVaultPath() string {
 		vaultDir = os.Getenv("VAULT_PATH")
 	}
 
-	return vaultDir
+	return strings.TrimSuffix(vaultDir, "/")
 }
