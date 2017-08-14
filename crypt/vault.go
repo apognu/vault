@@ -33,12 +33,12 @@ func InitVault() {
 	}
 
 	// Retrieve initial passphrase
-	passPhrase, err := GetPassphrase("Initial vault passphrase", true)
+	passphrase, err := GetPassphrase("Initial vault passphrase", true)
 	if err != nil {
 		logrus.Fatalf("could not read passphrase: %s", err)
 	}
 	passSalt := uuid.New().String()
-	passKey := pbkdf2.Key(GenerateKey([]byte(passPhrase)), []byte(passSalt), util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
+	passKey := pbkdf2.Key(GenerateKey([]byte(passphrase)), []byte(passSalt), util.BpkdfIterations, util.BpkdfKeySize, sha512.New)
 
 	// Generate random master key
 	keyBytes := make([]byte, 4096)
@@ -94,8 +94,13 @@ func InitVault() {
 	util.GitCommit("_vault.meta", util.GIT_ADD, "Created vault")
 }
 
-func GetVaultMeta() util.VaultMeta {
-	metaJson, err := ioutil.ReadFile(fmt.Sprintf("%s/_vault.meta", util.GetVaultPath()))
+func GetVaultMeta(rotation bool) util.VaultMeta {
+	metaPath := "_vault.meta"
+	if rotation {
+		metaPath = "_vault.meta.new"
+	}
+
+	metaJson, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", util.GetVaultPath(), metaPath))
 	if err != nil {
 		logrus.Fatalf("could not open vault metadata: %s", err)
 	}
@@ -108,7 +113,7 @@ func GetVaultMeta() util.VaultMeta {
 	return meta
 }
 
-func GetMasterKey(confirm, getPassphrase bool) []byte {
+func GetMasterKey(confirm, getPassphrase, rotation bool) []byte {
 	// Retrieve hashed passphrase either from console or seal
 	var passphrase []byte
 	if len(passphraseCache) == 0 {
@@ -129,7 +134,7 @@ func GetMasterKey(confirm, getPassphrase bool) []byte {
 		passphrase = passphraseCache
 	}
 
-	meta := GetVaultMeta()
+	meta := GetVaultMeta(rotation)
 
 	// Try and find a key slot than can be decrypted with provided key
 	for _, mkey := range meta.MasterKeys {

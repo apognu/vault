@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -61,6 +64,102 @@ func GetPassphrase(prompt string, confirm bool) ([]byte, error) {
 	}
 
 	return passphrase, err
+}
+
+func GetSecret(path string) (*util.Secret, util.AttributeMap) {
+	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		logrus.Fatal("secret does not exist")
+	}
+
+	cipherJson, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		logrus.Fatalf("could not retrieve secret: %s", err)
+	}
+
+	var cipherData util.Secret
+	err = json.Unmarshal(cipherJson, &cipherData)
+	if err != nil {
+		logrus.Fatalf("could not unmarshal secret: %s", err)
+	}
+
+	// Get the passphrase from the console if the store is sealed
+	masterKey := GetMasterKey(false, false, false)
+
+	// Decrypt secret encrypted data
+	attrs, err := DecryptData(&cipherData, masterKey)
+	if err != nil {
+		logrus.Fatalf("could not decrypt secret: %s", err)
+	}
+
+	return &cipherData, attrs
+}
+
+func SetSecret(path string, attrs util.AttributeMap, generatorLength int, edit bool, editedAttrs []string, rotation bool) {
+	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
+
+	// For each attribute, set its value
+	for k, v := range attrs {
+		// If eyes-only attribute, prompt for it on the command-line
+		if v.Value == "" {
+			pass, err := GetPassphrase(fmt.Sprintf("Value for '%s'", k), false)
+			if err != nil {
+				logrus.Fatalf("could not read attribute: %s", err)
+			}
+			attrs[k].Value = string(pass)
+			attrs[k].EyesOnly = true
+		} else if v.Value[0] == '@' {
+			filePath := v.Value[1:]
+			content, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				logrus.Fatalf("could not open file %s: %s", filePath, err)
+			}
+			attrs[k].Value = string(content)
+			attrs[k].File = true
+		} else if v.Value == "-" {
+			attrs[k].Value = GeneratePassword(generatorLength)
+			attrs[k].EyesOnly = true
+		} else {
+			attrs[k].EyesOnly = false
+		}
+	}
+
+	masterKey := GetMasterKey(false, false, rotation)
+	err := os.MkdirAll(filepath.Dir(filePath), 0700)
+	if err != nil {
+		logrus.Fatalf("could not create hierarchy: %s", err)
+	}
+
+	secretFile, err := os.Create(filePath)
+	if err != nil {
+		logrus.Fatalf("could not create secret: %s", err)
+	}
+	defer secretFile.Close()
+	secretFile.Chmod(0600)
+
+	// Get encrypted secret Go struct
+	cipherData, err := EncryptData(attrs, masterKey)
+	if err != nil {
+		logrus.Fatalf("could not encrypt secret: %s", err)
+	}
+
+	cipherJson, err := json.Marshal(cipherData)
+	if err != nil {
+		logrus.Fatalf("could not marshal secret: %s", err)
+	}
+
+	_, err = secretFile.Write(cipherJson)
+	if err != nil {
+		logrus.Fatalf("could not write secret: %s", err)
+	}
+
+	if edit {
+		logrus.Infof("secret '%s' edited successfully", path)
+		util.GitCommit(path, util.GIT_EDIT, "")
+	} else {
+		logrus.Infof("secret '%s' created successfully", path)
+		util.GitCommit(path, util.GIT_ADD, "")
+	}
 }
 
 func GenerateKey(passphrase []byte) []byte {

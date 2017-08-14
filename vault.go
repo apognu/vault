@@ -22,6 +22,7 @@ func main() {
 	appKeyAddComment := appKeyAdd.Flag("comment", "description of this key").Short('c').Required().String()
 	appKeyDelete := appKey.Command("delete", "delete a key from the vault")
 	appKeyDeleteID := appKeyDelete.Arg("id", "ID of the key to delete").Required().Int()
+	appKeyRotate := appKey.Command("rotate", "[EXPERIMENTAL] rotate the vault master key")
 
 	appList := app.Command("list", "list all secrets")
 	appListPath := appList.Arg("path", "secret path").Default("/").String()
@@ -73,6 +74,8 @@ func main() {
 		crypt.AddKey(*appKeyAddComment)
 	case appKeyDelete.FullCommand():
 		crypt.DeleteKey(*appKeyDeleteID)
+	case appKeyRotate.FullCommand():
+		crypt.RotateKey()
 
 	case appList.FullCommand():
 		listSecrets(*appListPath)
@@ -97,6 +100,6 @@ func main() {
 	case appUnseal.FullCommand():
 		crypt.Unseal()
 	case appSeal.FullCommand():
-		crypt.Seal()
+		crypt.Seal(false)
 	}
 }

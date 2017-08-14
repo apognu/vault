@@ -31,7 +31,7 @@ func Unseal() {
 		logrus.Fatal("store is already unsealed")
 	}
 
-	passphrase := GetMasterKey(false, true)
+	passphrase := GetMasterKey(false, true, false)
 	sealFile, err := os.Create(GetSealPath())
 	if err != nil {
 		logrus.Fatalf("could not unseal store: %s", err)
@@ -43,9 +43,12 @@ func Unseal() {
 	logrus.Info("store is now unsealed")
 }
 
-func Seal() {
+func Seal(rotation bool) {
 	if !IsUnsealed() {
-		logrus.Fatal("store is already sealed")
+		if !rotation {
+			logrus.Fatal("store is already sealed")
+		}
+		return
 	}
 
 	err := os.Remove(GetSealPath())
