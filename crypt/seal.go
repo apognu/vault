@@ -19,11 +19,12 @@ func GetSealPath() string {
 	if err != nil {
 		return sealPath
 	}
+	meta := GetVaultMeta(false)
 	runDir := fmt.Sprintf("/run/user/%s", currentUser.Uid)
 	if _, err := os.Stat(runDir); os.IsNotExist(err) {
 		return sealPath
 	}
-	return fmt.Sprintf("%s/vault-%s.seal", runDir, userName)
+	return fmt.Sprintf("%s/vault-%s.seal", runDir, meta.UUID)
 }
 
 func Unseal() {

@@ -14,6 +14,7 @@ type MasterKey struct {
 }
 
 type VaultMeta struct {
+	UUID string `json:"uuid"`
 	MasterKeys []MasterKey `json:"master_keys"`
 }
 

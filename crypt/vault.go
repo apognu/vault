@@ -57,7 +57,9 @@ func InitVault() {
 	nonce, aesgcm := GetCipher(passKey, nil)
 	ciphertext := aesgcm.Seal(nil, nonce, key, nil)
 
+	id := uuid.New().String()
 	meta := &util.VaultMeta{
+		UUID: id,
 		MasterKeys: []util.MasterKey{
 			{
 				Comment:   "Initial key generated on vault creation",
