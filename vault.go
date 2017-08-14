@@ -12,7 +12,7 @@ import (
 func main() {
 	app := kingpin.New("vault", "Simple encrypted data store")
 	app.HelpFlag.Short('h')
-	app.UsageTemplate(kingpin.CompactUsageTemplate)
+	app.UsageTemplate(kingpin.SeparateOptionalFlagsUsageTemplate)
 
 	appInit := app.Command("init", "initiate the vault")
 
