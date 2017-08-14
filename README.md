@@ -12,6 +12,7 @@ The whole store directory is located under $HOME/.vault (overridable through the
 
  * [Create the vault](#create-the-vault)
  * [Key management](#key-management)
+   * [Rotate the master key](#rotate-the-master-key)
  * Secret management
    * [Add a secret](#add-a-secret)
      * [Eyes-only attributes](#eyes-only-attributes)
