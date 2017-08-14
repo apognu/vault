@@ -171,6 +171,8 @@ func RotateKey() {
 
 	os.Rename(fmt.Sprintf("%s/_vault.meta.new", util.GetVaultPath()), fmt.Sprintf("%s/_vault.meta", util.GetVaultPath()))
 	util.GitCommit("-A", util.GIT_EDIT, "Rotated vault master key")
+
+	logrus.Info("vault master key rotation successful")
 }
 
 func rotateSecretKey(path string, info os.FileInfo, err error) error {

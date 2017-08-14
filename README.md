@@ -73,6 +73,26 @@ INFO[0007] key was successfully added
 
 The command will prompt you for one of the existing passphrases, and then to enter and confirm the one you want to add.
 
+### Rotate the master key
+
+**Note:** this is an experimental feature that still needs to be tested properly.
+
+In addition of changing the passphrases used to lock and unlock the vault, you can rotate the master key used to encrypt the data. This will re-encrypt all the data contained in the vault with a new random master key, and delete all keys associated with the vault except for the one used to initiate the rotation.
+
+We do our best to try and rollback the repository in case something goes wrong during the process, but this part still needs testing. If anything goes wrong during the master key rotation, check if the vault repository is clean before interacting with it again (if not, a git reset might help).
+
+```
+$ vault key rotate
+WARNING: rotating the vault's master key will invalidate all the user passphrases except the one used here.
+If the process fails for any reasons, please check your vault repository is clean before going any further.
+Are you sure you want to rotate the vault's master key ? (y/N) y
+Enter passphrase: 
+INFO[0005] secret '/a/a' edited successfully
+INFO[0005] secret '/a/b' edited successfully
+INFO[0005] secret '/a/c' edited successfully
+INFO[0005] vault master key rotation successful
+```
+
 ## Add a secret
 
 ```
