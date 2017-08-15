@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	crand "crypto/rand"
 	"crypto/sha512"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -114,7 +115,9 @@ func SetSecret(path string, attrs util.AttributeMap, generatorLength int, edit b
 			if err != nil {
 				logrus.Fatalf("could not open file %s: %s", filePath, err)
 			}
-			attrs[k].Value = string(content)
+			b64 := base64.StdEncoding.EncodeToString(content)
+
+			attrs[k].Value = b64
 			attrs[k].File = true
 		} else if v.Value == "-" {
 			attrs[k].Value = GeneratePassword(generatorLength)

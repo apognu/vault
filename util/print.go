@@ -52,6 +52,8 @@ func FormatAttributes(path string, attrs AttributeMap, print bool) {
 		if v.File {
 			if !print {
 				v.Value = green("<file content>")
+			} else {
+				v.Value = fmt.Sprintf("%s (use -w to write file to disk)", green("<file content>"))
 			}
 		}
 		fmt.Printf(lineFmt, magenta(k), magenta("="), v.Value)

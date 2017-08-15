@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -151,7 +152,12 @@ func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string) {
 		}
 		defer file.Close()
 		file.Chmod(0400)
-		file.Write([]byte(a.Value))
+
+		b64, err := base64.StdEncoding.DecodeString(a.Value)
+		if err != nil {
+			logrus.Fatalf("could not decode base64 file content")
+		}
+		file.Write(b64)
 
 		logrus.Infof("attribute written to '%s'", fileName)
 	}
