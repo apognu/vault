@@ -46,7 +46,6 @@ The available keys in a store can be listed with the following command:
 
 ```
 $ vault key list
-vault key list
  - #0 (Tue, 09 Aug 2017, 16:25) Initial key created on vault creation
        721a9b52bfceacc503c056e3b9b93cfa
  - #1 (Tue, 09 Aug 2017, 21:34) Added key for whatever reason
