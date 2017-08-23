@@ -14,6 +14,10 @@ func main() {
 	app.HelpFlag.Short('h')
 	app.UsageTemplate(kingpin.SeparateOptionalFlagsUsageTemplate)
 
+	appServer := app.Command("server", "run the HTTP interface")
+	appServerListen := appServer.Flag("listen", "address on which to listen on").Short('l').Default("127.0.0.1:8080").TCP()
+	appServerAPIKey := appServer.Flag("apikey", "API key to use for all requests").Short('k').Required().String()
+
 	appInit := app.Command("init", "initiate the vault")
 
 	appKey := app.Command("key", "vault key management")
@@ -61,6 +65,9 @@ func main() {
 	appSeal := app.Command("seal", "seal store")
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	case appServer.FullCommand():
+		StartServer(*appServerListen, *appServerAPIKey)
+
 	case appInit.FullCommand():
 		crypt.InitVault()
 	}

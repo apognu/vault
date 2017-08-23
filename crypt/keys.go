@@ -176,14 +176,8 @@ func RotateKey() {
 }
 
 func rotateSecretKey(path string, info os.FileInfo, err error) error {
-	if strings.HasSuffix(path, ".git") {
-		return filepath.SkipDir
-	}
-	if strings.HasSuffix(path, "_vault.meta") || strings.HasSuffix(path, "_vault.meta.new") {
-		return nil
-	}
-	if f, _ := os.Stat(path); f.IsDir() {
-		return nil
+	if walk, err := util.ShouldFileBeWalked(path); !walk {
+		return err
 	}
 
 	secretPathTokens := strings.Split(path, util.GetVaultPath())

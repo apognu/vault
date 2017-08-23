@@ -67,15 +67,15 @@ func GetPassphrase(prompt string, confirm bool) ([]byte, error) {
 	return passphrase, err
 }
 
-func GetSecret(path string) (*util.Secret, util.AttributeMap) {
+func GetSecretFile(path string) (*util.Secret, error) {
 	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		logrus.Fatal("secret does not exist")
+		return nil, err
 	}
 
 	cipherJson, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		logrus.Fatalf("could not retrieve secret: %s", err)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return nil, err
 	}
 
 	var cipherData util.Secret
@@ -84,16 +84,25 @@ func GetSecret(path string) (*util.Secret, util.AttributeMap) {
 		logrus.Fatalf("could not unmarshal secret: %s", err)
 	}
 
+	return &cipherData, err
+}
+
+func GetSecret(path string) (*util.Secret, util.AttributeMap) {
+	cipherData, err := GetSecretFile(path)
+	if err != nil {
+		logrus.Fatalf("could not retrieve secret: %s", err)
+	}
+
 	// Get the passphrase from the console if the store is sealed
 	masterKey := GetMasterKey(false, false, false)
 
 	// Decrypt secret encrypted data
-	attrs, err := DecryptData(&cipherData, masterKey)
+	attrs, err := DecryptData(cipherData, masterKey)
 	if err != nil {
 		logrus.Fatalf("could not decrypt secret: %s", err)
 	}
 
-	return &cipherData, attrs
+	return cipherData, attrs
 }
 
 func SetSecret(path string, attrs util.AttributeMap, generatorLength int, edit bool, editedAttrs []string, rotation bool) {
