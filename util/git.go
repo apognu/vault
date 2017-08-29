@@ -16,6 +16,8 @@ const (
 )
 
 func GitClone(url string) {
+	os.MkdirAll(GetVaultPath(), 0700)
+
 	files, err := ioutil.ReadDir(GetVaultPath())
 	if err != nil {
 		logrus.Fatalf("%s does not exist", GetVaultPath())

@@ -70,6 +70,9 @@ func main() {
 
 	case appInit.FullCommand():
 		crypt.InitVault()
+
+	case appGitClone.FullCommand():
+		util.GitClone(*appGitCloneURL)
 	}
 
 	util.AssertVaultExists()
@@ -95,8 +98,6 @@ func main() {
 	case appDelete.FullCommand():
 		deleteSecret(*appDeletePath)
 
-	case appGitClone.FullCommand():
-		util.GitClone(*appGitCloneURL)
 	case appGitRemote.FullCommand():
 		util.GitRemote(*appGitRemoteURL)
 	case appGitPush.FullCommand():
