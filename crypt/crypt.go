@@ -103,7 +103,7 @@ func GetSecret(path string) (*util.Secret, util.AttributeMap) {
 	return cipherData, attrs
 }
 
-func SetSecret(path string, attrs util.AttributeMap, generatorLength int, edit bool, editedAttrs []string, rotation bool) {
+func SetSecret(path string, attrs util.AttributeMap, generatorLength int, generatorSymbols, edit bool, editedAttrs []string, rotation bool) {
 	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 
 	// For each attribute, set its value
@@ -127,7 +127,7 @@ func SetSecret(path string, attrs util.AttributeMap, generatorLength int, edit b
 			attrs[k].Value = b64
 			attrs[k].File = true
 		} else if v.Value == "-" {
-			attrs[k].Value = GeneratePassword(generatorLength)
+			attrs[k].Value = GeneratePassword(generatorLength, generatorSymbols)
 			attrs[k].EyesOnly = true
 		} else {
 			attrs[k].EyesOnly = false

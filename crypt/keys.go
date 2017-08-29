@@ -188,7 +188,7 @@ func rotateSecretKey(path string, info os.FileInfo, err error) error {
 	secretPath := strings.Trim(secretPathTokens[1], "/")
 	_, attrs := GetSecret(secretPath)
 
-	SetSecret(secretPath, attrs, 0, true, []string{}, true)
+	SetSecret(secretPath, attrs, 0, false, true, []string{}, true)
 
 	return nil
 }

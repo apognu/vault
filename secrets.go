@@ -51,7 +51,7 @@ func showSecret(path string, print bool, clip bool, clipAttr string, write bool,
 	util.FormatAttributes(path, attrs, print)
 }
 
-func addSecret(path string, attributes map[string]string, generatorLength int, edit bool, editedAttrs []string) {
+func addSecret(path string, attributes map[string]string, generatorLength int, generatorSymbols, edit bool, editedAttrs []string) {
 	// Check if the secret already exists in ADD mode
 	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if !edit {
@@ -67,10 +67,10 @@ func addSecret(path string, attributes map[string]string, generatorLength int, e
 		}
 	}
 
-	crypt.SetSecret(path, attrs, generatorLength, edit, editedAttrs, false)
+	crypt.SetSecret(path, attrs, generatorLength, generatorSymbols, edit, editedAttrs, false)
 }
 
-func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, generatorLength int) {
+func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, generatorLength int, generatorSymbols bool) {
 	_, attrs := crypt.GetSecret(path)
 	editedAttrs := make([]string, 0)
 
@@ -89,7 +89,7 @@ func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, 
 		delete(attrs, k)
 	}
 
-	crypt.SetSecret(path, attrs, generatorLength, true, editedAttrs, false)
+	crypt.SetSecret(path, attrs, generatorLength, generatorSymbols, true, editedAttrs, false)
 }
 
 func deleteSecret(path string) {
