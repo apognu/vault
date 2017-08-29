@@ -22,7 +22,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 FROM alpine:latest
 LABEL maintainer "Antoine POPINEAU <antoine.popineau@appscho.com>"
 
-RUN apk -U add git
+RUN apk -U add openssh git
 COPY --from=builder /go/src/github.com/apognu/vault/vault /vault
 COPY docker-entrypoint.sh /entrypoint.sh
 

@@ -17,14 +17,17 @@ if [ -z "$VAULT_API_KEY" ]; then
   exit 1
 fi
 
-export VAULT_PATH='/vault'
+export VAULT_PATH='/vault-data'
 export SSH_KEY_PATH='/vault.key'
 
-echo "$VAULT_SSH_KEY" > "$SSH_KEY_PATH" && chmod 0600 "$SSH_KEY_PATH"
-ssh-add "$SSH_KEY_PATH"
+eval $(ssh-agent)
+echo -e "$VAULT_SSH_KEY" | ssh-add -
 
-./vault git clone "$VAULT_URL"
-./vault server --apikey "$VAULT_API_KEY" &
+mkdir -p ~/.ssh
+echo -e "StrictHostKeyChecking no\n" >> ~/.ssh/config
+
+/vault git clone "$VAULT_URL"
+/vault server -k "$VAULT_API_KEY" -l "0.0.0.0:8080" &
 
 cd "$VAULT_PATH"
 
