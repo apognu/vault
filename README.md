@@ -20,8 +20,9 @@ The whole store directory is located under $HOME/.vault (overridable through the
    * [Print a secret](#print-a-secret)
    * [Edit a secret](#edit-a-secret)
    * [Delete a secret](#delete-a-secret)
-* [Seal and unseal the vault](#seal-and-unseal-the-vault)
+ * [Seal and unseal the vault](#seal-and-unseal-the-vault)
  * [Git integration](#git-integration)
+ * [HTTP interface](#http-interface) 
 
 ## Create the vault
 
@@ -116,7 +117,9 @@ INFO[0010] secret 'website.com' created successfully
 
 ### Generated passwords
 
-One can generate random passwords (now with [A-Za-z0-9]) with the syntax ```attr=-```. By default, a random 16-character password will be generated for that attribute. Generated attributes will automatically be set as eyes-only.
+One can generate random alphanumeric passwords with the attribute syntax ```attr=-```. By default, a random 16-character password will be generated for that attribute. Generated attributes will automatically be set as eyes-only.
+
+The ```--symbols``` option adds special characters into the mix.
 
 ```
 $ vault add websites.com username=apognu password=-
@@ -224,3 +227,25 @@ $ vault git pull
 ```
 
 Remember, the directory ```$HOME/.vault``` is a regular git repository, you can used the ```git``` command as you like.
+
+## HTTP interface
+
+Vault includes a simple HTTP interface that allows for listing and showing encrypted secrets. The server can be launched through the ```server``` subcommand. An API key and listen interface can be given as arguments.
+
+```
+$ vault server -k mysupersecretkey -l 0.0.0.0:8080
+```
+
+The interface exposes three endpoints:
+
+ * **/ ->** list all secrets
+ * **/path/to/secret ->** get encrypted information on a secret
+ * **/-/masterkeys ->** get encrypted informations on the master keys
+
+It is up to the client to set up the cryptographic facilities to decrypt anything provided by this interface.
+
+In order to communicate with the API, the ```Authorization``` header has contains a HS256-signed JWT, with an ```exp``` claim no later than 30 seconds from the ```nbf``` claim. The ```aud``` claim must be set to ```vault:<path>``` (e.g. ```vault:/-/masterkeys``` or ```vault:/```).
+
+The key used to sign the token is the string passed to ```-k```.
+
+**Warning:** it goes without saying that we urge the user to secure the communication between the client and the API through TLS. Each generated token is stateless and is prone to replay attacks.
