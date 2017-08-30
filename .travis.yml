@@ -6,3 +6,12 @@ install:
   - glide install
 script:
   - go test $(glide novendor)
+  - go build .
+deploy:
+  provider: releases
+  api_key:
+    secure: YW9NbdBs7yzfyyDQekVgsRtZbd8HqlXF1Usl4Ouu2Agysn9ViDPfPmXdS43KsEqL6o3c06mCcyreAB8kOzJUMy+lgcdhFMRHCcY6/XwV4rtq/RT3o9ljJNEZ421+MzveoF7ALgm+AUP9eV+QlQZa5Df/QEh4PldZg044xGmSi2WC0xyoRgROL7MVzag/pthhfElJy6N9zKd7+/PvFAMpg05whiFhZspz3ux+CIKVHIUk+KWXFxkt5/mgEssJpz7a0aJQtjC4ueEoipgKKJERV9gTlqV67zIwR484GUg7z2xsOWu+NmtJikSIULs+VA9ocUPjk0oB1hJWe3TP2OLj5C3dvC8L9nRu2G5aeNOHRIt+ySy83z/eTh+diECNPOfI2Y7lwi4XCoYQhLosTb1FSBBFtVFp+bPP+rRrk27zHPQ9qqUP247SDTAI15CTbC/0fitKHsMEXbKcG+dE/7WVj4d/d0291ses42MirAsuxoX3mn1EQ+rQUCbVSczdguKT2TOZpytBKnEV54RorxFB8sfP/0KjgRVBM+Iie3HqpQ6PM1cNLL+MVIHdDI30NMeZzBSkiIndkOKG5I6KyxTttnYBA2q5PpRLe6BkmMKQkPPuukXYHsHABJl0Ml1Ha7xcaEgMNKOKmbZtAi2oBjadXlc0PcMVMs5AXIdOKtNMPFA=
+  file: vault
+  skip_cleanup: true
+  on:
+    tags: true
