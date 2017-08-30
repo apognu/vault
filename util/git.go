@@ -25,6 +25,9 @@ func GitClone(url string) {
 	if len(files) > 0 {
 		logrus.Fatalf("%s directory already exists and contains files", GetVaultPath())
 	}
+
+	logrus.Info("cloning from remote repository")
+
 	RunGitCommand(false, "clone", url, GetVaultPath())
 }
 
@@ -54,12 +57,16 @@ func GitCommit(file string, op int, message string) {
 }
 
 func GitPush() {
+	logrus.Info("pushing to remote repository")
+
 	RunGitCommand(false, "add", "-A")
 	RunGitCommand(false, "commit", "-m", "Vault store update.")
 	RunGitCommand(false, "push", "-u", "origin", "master")
 }
 
 func GitPull() {
+	logrus.Info("pulling from remote repository")
+
 	RunGitCommand(false, "pull", "origin", "master")
 }
 

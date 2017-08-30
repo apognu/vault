@@ -27,3 +27,4 @@ COPY --from=builder /go/src/github.com/apognu/vault/vault /vault
 COPY docker-entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ "--help" ]
