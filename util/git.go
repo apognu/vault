@@ -56,6 +56,12 @@ func GitCommit(file string, op int, message string) {
 	RunGitCommand(true, "commit", "-m", message)
 }
 
+func GitCommitRename(oldFile, newFile string) {
+	RunGitCommand(true, "add", oldFile)
+	RunGitCommand(true, "add", newFile)
+	RunGitCommand(true, "commit", "-m", fmt.Sprintf("Renamed '%s' to '%s'", oldFile, newFile))
+}
+
 func GitPush() {
 	logrus.Info("pushing to remote repository")
 

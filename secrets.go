@@ -23,6 +23,10 @@ func listSecrets(path string) {
 }
 
 func showSecret(path string, print bool, clip bool, clipAttr string, write bool, writeFiles []string) {
+	if !util.IsValidPath(path) {
+		logrus.Fatalf("invalid file path: %s", path)
+	}
+
 	_, attrs := crypt.GetSecret(path)
 
 	if clipAttr == "" {
@@ -52,6 +56,10 @@ func showSecret(path string, print bool, clip bool, clipAttr string, write bool,
 }
 
 func addSecret(path string, attributes map[string]string, generatorLength int, generatorSymbols, edit bool, editedAttrs []string) {
+	if !util.IsValidPath(path) {
+		logrus.Fatalf("invalid file path: %s", path)
+	}
+
 	// Check if the secret already exists in ADD mode
 	filePath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
 	if !edit {
@@ -71,6 +79,10 @@ func addSecret(path string, attributes map[string]string, generatorLength int, g
 }
 
 func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, generatorLength int, generatorSymbols bool) {
+	if !util.IsValidPath(path) {
+		logrus.Fatalf("invalid file path: %s", path)
+	}
+
 	_, attrs := crypt.GetSecret(path)
 	editedAttrs := make([]string, 0)
 
@@ -92,7 +104,51 @@ func editSecret(path string, newAttrs map[string]string, deletedAttrs []string, 
 	crypt.SetSecret(path, attrs, generatorLength, generatorSymbols, true, editedAttrs, false)
 }
 
+func renameSecret(path, newPath string) {
+	if !util.IsValidPath(path) {
+		logrus.Fatalf("invalid file path: %s", path)
+	}
+	if !util.IsValidPath(newPath) {
+		logrus.Fatalf("invalid file path: %s", newPath)
+	}
+
+	fullPath := fmt.Sprintf("%s/%s", util.GetVaultPath(), path)
+	fullNewPath := fmt.Sprintf("%s/%s", util.GetVaultPath(), newPath)
+	dir, _ := filepath.Split(fullNewPath)
+
+	err := os.MkdirAll(dir, 0700)
+	if err != nil {
+		logrus.Fatalf("could not rename secret: %s", err)
+	}
+
+	err = os.Rename(fullPath, fullNewPath)
+	if err != nil {
+		logrus.Fatalf("could not rename secret: %s", err)
+	}
+
+	logrus.Infof("secret '%s' renamed to '%s' successfully", path, newPath)
+	util.GitCommitRename(path, newPath)
+
+	// Remove any empty parent directory
+	for {
+		dir, _ := filepath.Split(filepath.Clean(fullPath))
+		if dir == "" {
+			break
+		}
+
+		err := os.Remove(dir)
+		if err != nil {
+			return
+		}
+		fullPath = dir
+	}
+}
+
 func deleteSecret(path string) {
+	if !util.IsValidPath(path) {
+		logrus.Fatalf("invalid file path: %s", path)
+	}
+
 	err := os.Remove(fmt.Sprintf("%s/%s", util.GetVaultPath(), path))
 	if err != nil {
 		logrus.Fatalf("could not remove secret: %s", err)

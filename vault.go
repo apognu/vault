@@ -52,6 +52,10 @@ func main() {
 	appEditGeneratorLength := appEdit.Flag("length", "length of generated passwords").Short('l').Default("16").Int()
 	appEditGeneratorSymbols := appEdit.Flag("symbols", "include special characters in the generated password").Default("false").Bool()
 
+	appRename := app.Command("rename", "rename a secret")
+	appRenamePath := appRename.Arg("path", "path to the secret to rename").Required().String()
+	appRenameNewPath := appRename.Arg("newpath", "new path to secret").Required().String()
+
 	appDelete := app.Command("delete", "delete a secret")
 	appDeletePath := appDelete.Arg("path", "secret path").Required().String()
 
@@ -97,6 +101,8 @@ func main() {
 		addSecret(*appAddPath, *appAddAttrs, *appAddGeneratorLength, *appAddGeneratorSymbols, false, []string{})
 	case appEdit.FullCommand():
 		editSecret(*appEditPath, *appEditAttrs, *appEditDeletedAttrs, *appEditGeneratorLength, *appEditGeneratorSymbols)
+	case appRename.FullCommand():
+		renameSecret(*appRenamePath, *appRenameNewPath)
 	case appDelete.FullCommand():
 		deleteSecret(*appDeletePath)
 

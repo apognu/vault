@@ -14,6 +14,9 @@ func AssertVaultExists() {
 	if _, err := os.Stat(GetVaultPath()); os.IsNotExist(err) {
 		logrus.Fatal("vault does not exist, consider running init")
 	}
+	if _, err := os.Stat(fmt.Sprintf("%s/_vault.meta", GetVaultPath())); os.IsNotExist(err) {
+		logrus.Fatal("vault does not exist, consider running init")
+	}
 }
 
 func GetVaultPath() string {

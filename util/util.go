@@ -3,8 +3,19 @@ package util
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+func IsValidPath(path string) bool {
+	rgx := regexp.MustCompile("^[a-z0-9-]+$")
+	for _, t := range strings.Split(path, string(os.PathSeparator)) {
+		if !rgx.Match([]byte(t)) {
+			return false
+		}
+	}
+	return true
+}
 
 func StringArrayContains(arr []string, item string) bool {
 	for _, v := range arr {
