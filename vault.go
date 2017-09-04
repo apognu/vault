@@ -38,6 +38,7 @@ func main() {
 	appShowClipAttr := appShow.Flag("clip-attributes", "attribute to copy to clipboard").Short('a').Default("").String()
 	appShowWrite := appShow.Flag("write", "write file attributes on the filesystem").Short('w').Bool()
 	appShowWriteFiles := appShow.Flag("file", "which file attributes to write").Short('f').Strings()
+	appShowWriteStdout := appShow.Flag("stdout", "print file attribute to STDOUT").Short('s').Bool()
 
 	appAdd := app.Command("add", "add a secret")
 	appAddPath := appAdd.Arg("path", "secret path").Required().String()
@@ -96,7 +97,7 @@ func main() {
 	case appList.FullCommand():
 		listSecrets(*appListPath)
 	case appShow.FullCommand():
-		showSecret(*appShowPath, *appShowPrint, *appShowClipboard, *appShowClipAttr, *appShowWrite, *appShowWriteFiles)
+		showSecret(*appShowPath, *appShowPrint, *appShowClipboard, *appShowClipAttr, *appShowWrite, *appShowWriteFiles, *appShowWriteStdout)
 	case appAdd.FullCommand():
 		addSecret(*appAddPath, *appAddAttrs, *appAddGeneratorLength, *appAddGeneratorSymbols, false, []string{})
 	case appEdit.FullCommand():

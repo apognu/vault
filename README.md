@@ -19,6 +19,7 @@ The whole store directory is located under $HOME/.vault (overridable through the
      * [File attribute](#file-attributes)
    * [Print a secret](#print-a-secret)
    * [Edit a secret](#edit-a-secret)
+   * [Rename a secret](#rename-a-secret)
    * [Delete a secret](#delete-a-secret)
  * [Seal and unseal the vault](#seal-and-unseal-the-vault)
  * [Git integration](#git-integration)
@@ -170,6 +171,12 @@ By default, all file attributes are written to matching files. If you wish to re
 $ vault show my/secret/files -w -f file1 -f file2
 ```
 
+For file attributes, ```-s``` (for ```--stdout```) can also be used to print the content of a single attribute to your standard output. If the secret only contains one file attribute, it will be automatically selected, otherwise, use ```-f```. You can use this to pipe your secret to other programs, for instance:
+
+```
+$ vault show sshkeys/corporate -w -s -f privkey | ssh-add -
+```
+
 ## Edit a secret
 
 The syntax for modifying an existing secret is exactly the same as the one used to create one, with one addition: an optional list of attributes to delete.
@@ -179,6 +186,14 @@ $ vault edit website.com -d url username=newlogin password=
 ```
 
 This command will delete thre ```url``` attribute from the secret, change the ```username``` attribute to ```newlogin``` and prompt for the value of the eyes-only attribute ```password```
+
+## Rename a secret
+
+A secret can be renamed through the ```rename``` command:
+
+```
+$ vault rename my/first/secret new/location/secret
+```
 
 ## Delete a secret
 

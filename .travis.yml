@@ -10,6 +10,8 @@ before_deploy:
   - go build .
 deploy:
   provider: releases
+  name: "${TRAVIS_TAG}"
+  body: "Vault release ${TRAVIS_TAG}"
   api_key:
     secure: bzOc9nNVl7qt2BBgnbB5r7jqSepYdAq/sTvihYtHzDPd1qXmVz980Sgh4jI0Mqx0izICA4L6GCconpPbX5nZf1VCoh828FxHDpL3euUX8vjpGfMuZmoIcHRMzn/SHkczTeu6AuI7c5pRBVH2YZ4K1uZ7oHkM8h9DAIPVfw9/ZlBhntIxn4I2VlQ/W4reDsLjve3XR38uR3j/SXKdQFQzdEWfPE8HLvBOBGjgmSQk+h9LJ8aLuc4ouCyxb4oAvzdAyT+Z+pgu68xfaZ+BkCQY518l2YHzbM2wdw59EX7XPHnuTlqG7VggoPVMsI1aYeFHMKJ2gW/wxhPjTbKX41WH/gffcV74x3HKkt4Nc0VQjEGipqGv7704LVpfafRcw1/Prm3JOS1NCl9/3RoDOUNJs3w1FlGk7Tq5UA6p5MQkdRsEfc9Wom4Q1sWcbVZh+hW0nQZZ6A/Q1/yGfMS+vBUXxl4RvTsWns2ItyrhfRbml3ilqzoalDbFQWZmv4GdGxOnM1snrHwlrbCvSw21xzMnw8t+7RJiGQ55DfXUXAk3Vta8by9sHF4CQvLomIIY4fo1SWAHsb4fUX/fQpbrXcoiN7wEY1aI86rqYteB6rAl54/w2SHtoH6fSuIpMXIfvZC5GAk0gr25NICGzNn4wJwBakMsXpEcgNBS/vqVi9Cd2XY=
   file: vault

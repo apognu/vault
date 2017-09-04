@@ -22,7 +22,7 @@ func listSecrets(path string) {
 	util.FormatDirectory(path, 0)
 }
 
-func showSecret(path string, print bool, clip bool, clipAttr string, write bool, writeFiles []string) {
+func showSecret(path string, print bool, clip bool, clipAttr string, write bool, writeFiles []string, writeStdout bool) {
 	if !util.IsValidPath(path) {
 		logrus.Fatalf("invalid file path: %s", path)
 	}
@@ -48,7 +48,7 @@ func showSecret(path string, print bool, clip bool, clipAttr string, write bool,
 	}
 
 	if write {
-		WriteFiles(path, attrs, writeFiles)
+		WriteFiles(path, attrs, writeFiles, writeStdout)
 		return
 	}
 
@@ -171,7 +171,7 @@ func deleteSecret(path string) {
 	}
 }
 
-func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string) {
+func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string, writeStdout bool) {
 	fileAttrs := make(util.AttributeMap)
 	for n, a := range attrs {
 		if a.File {
@@ -188,31 +188,45 @@ func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string) {
 		logrus.Fatal("no file attribute matching what you requested")
 	}
 
-	dirs, secretName := filepath.Split(path)
-	dir := ""
-	if len(dirs) == 0 {
-		dir = fmt.Sprintf("vault-%s", secretName)
-	} else {
-		dir = fmt.Sprintf("vault-%s-%s", strings.Join(strings.Split(filepath.Clean(dirs), string(os.PathSeparator)), "-"), secretName)
+	if writeStdout {
+		if len(fileAttrs) > 1 && len(writeFiles) != 1 {
+			logrus.Fatalf("can only write a single file attribute to STDOUT")
+		}
 	}
 
-	if err := os.Mkdir(dir, 0700); err != nil {
-		logrus.Fatalf("could not create directory %s", err)
+	dir := ""
+	if !writeStdout {
+		dirs, secretName := filepath.Split(path)
+		if len(dirs) == 0 {
+			dir = fmt.Sprintf("vault-%s", secretName)
+		} else {
+			dir = fmt.Sprintf("vault-%s-%s", strings.Join(strings.Split(filepath.Clean(dirs), string(os.PathSeparator)), "-"), secretName)
+		}
+
+		if err := os.Mkdir(dir, 0700); err != nil {
+			logrus.Fatalf("could not create directory %s", err)
+		}
 	}
 
 	for n, a := range fileAttrs {
+		b64, err := base64.StdEncoding.DecodeString(a.Value)
+		if err != nil {
+			logrus.Fatalf("could not decode base64 file content")
+		}
+
+		if writeStdout {
+			fmt.Print(string(b64))
+			return
+		}
+
 		fileName := fmt.Sprintf("%s/%s", dir, n)
 		file, err := os.Create(fileName)
 		if err != nil {
 			logrus.Fatalf("could not create output file: %s", err)
 		}
 		defer file.Close()
-		file.Chmod(0400)
 
-		b64, err := base64.StdEncoding.DecodeString(a.Value)
-		if err != nil {
-			logrus.Fatalf("could not decode base64 file content")
-		}
+		file.Chmod(0400)
 		file.Write(b64)
 
 		logrus.Infof("attribute written to '%s'", fileName)
