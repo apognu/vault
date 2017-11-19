@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if which -- "$1" > /dev/null 2>&1; then
   exec $@
   exit 0
