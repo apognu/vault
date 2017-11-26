@@ -132,7 +132,9 @@ func SetSecret(path string, attrs util.AttributeMap, generatorLength int, genera
 			attrs[k].Value = GeneratePassword(generatorLength, generatorSymbols)
 			attrs[k].EyesOnly = true
 		} else {
-			attrs[k].EyesOnly = false
+			if edit && util.StringArrayContains(editedAttrs, k) {
+				attrs[k].EyesOnly = false
+			}
 		}
 	}
 
