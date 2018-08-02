@@ -62,6 +62,7 @@ func apiKeyMiddleware(w http.ResponseWriter, r *http.Request, nxt http.HandlerFu
 	})
 
 	if err != nil || !token.Valid {
+    logrus.Errorf("could not validate token: %s", err.Error())
 		writeError(w, http.StatusUnauthorized, "could not verify token signature")
 		return
 	}
@@ -83,7 +84,7 @@ func apiKeyMiddleware(w http.ResponseWriter, r *http.Request, nxt http.HandlerFu
 		}
 
 		if claims["aud"] != fmt.Sprintf("vault:%s", r.URL.Path) {
-			writeError(w, http.StatusUnauthorized, "could not verify token signature")
+      writeError(w, http.StatusUnauthorized, fmt.Sprintf("wrong audience: vault:%s != vault:%s", claims["aud"], r.URL.Path))
 			return
 		}
 	}

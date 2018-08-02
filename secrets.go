@@ -174,14 +174,14 @@ func deleteSecret(path string) {
 func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string, writeStdout bool) {
 	fileAttrs := make(util.AttributeMap)
 	for n, a := range attrs {
-		if a.File {
+		if writeStdout || a.File {
 			if len(writeFiles) != 0 {
 				if !util.StringArrayContains(writeFiles, n) {
 					continue
 				}
 			}
-			fileAttrs[n] = a
 		}
+		fileAttrs[n] = a
 	}
 
 	if len(fileAttrs) == 0 {
@@ -209,13 +209,20 @@ func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string, write
 	}
 
 	for n, a := range fileAttrs {
-		b64, err := base64.StdEncoding.DecodeString(a.Value)
-		if err != nil {
-			logrus.Fatalf("could not decode base64 file content")
+		var output []byte
+
+		if a.File {
+			var err error
+			output, err = base64.StdEncoding.DecodeString(a.Value)
+			if err != nil {
+				logrus.Fatalf("could not decode base64 file content")
+			}
+		} else {
+			output = []byte(a.Value)
 		}
 
 		if writeStdout {
-			fmt.Print(string(b64))
+			fmt.Print(string(output))
 			return
 		}
 
@@ -227,7 +234,7 @@ func WriteFiles(path string, attrs util.AttributeMap, writeFiles []string, write
 		defer file.Close()
 
 		file.Chmod(0400)
-		file.Write(b64)
+		file.Write(output)
 
 		logrus.Infof("attribute written to '%s'", fileName)
 	}

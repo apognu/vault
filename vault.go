@@ -71,7 +71,9 @@ func main() {
 	appUnseal := app.Command("unseal", "unseal store until next reboot")
 	appSeal := app.Command("seal", "seal store")
 
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	args := kingpin.MustParse(app.Parse(os.Args[1:]))
+
+	switch args {
 	case appServer.FullCommand():
 		StartServer(*appServerListen, *appServerAPIKey)
 
@@ -84,7 +86,7 @@ func main() {
 
 	util.AssertVaultExists()
 
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	switch args {
 	case appKeyList.FullCommand():
 		crypt.ListKeys()
 	case appKeyAdd.FullCommand():
